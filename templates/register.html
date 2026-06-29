@@ -27,7 +27,7 @@
   </div>
   <h2>{{ t('reg_title') }}</h2>
   <p class="sub">{{ t('reg_sub') }}</p>
-  <div class="plan-box">📦 {{ t('reg_plan_label') }} <b>Masroofi — {{ plan.label }}</b> ({{ plan.price_display }})</div>
+  <div class="plan-box">📦 {{ t('reg_plan_label') }} <b>Masroofi — {{ t('plan_lifetime') if plan.days==0 else t('plan_1year') }}</b> ({{ plan.price_display }})</div>
   <form method="POST">
     <input type="hidden" name="plan" value="{{ plan_id }}">
     <label>{{ t('full_name') }}</label>

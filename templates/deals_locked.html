@@ -28,7 +28,7 @@
   <p>{{ t('locked_desc') }}</p>
   <div class="plans">
     {% for id, plan in plans.items() %}
-    <a class="btn" href="{{ url_for('register', plan=id) }}">{{ plan.label }} — {{ plan.price_display }}</a>
+    <a class="btn" href="{{ url_for('register', plan=id) }}">{{ t('plan_lifetime') if plan.days==0 else t('plan_1year') }} — {{ plan.price_display }}</a>
     {% endfor %}
   </div>
   <a class="home" href="/">{{ t('back_home') }}</a>

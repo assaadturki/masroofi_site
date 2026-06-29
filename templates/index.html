@@ -38,8 +38,6 @@
 </head>
 <body>
 
-<div class="test-banner">{{ t('test_banner') }}</div>
-
 <header style="padding:0">
   <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
   <nav class="navbar">
@@ -88,7 +86,7 @@ window.addEventListener('resize', adjustHeaderSpacing);
   <div class="plans">
     {% for id, plan in plans.items() %}
     <div class="plan {{ 'highlight' if id=='masroofi-lifetime' else '' }}">
-      <h2>{{ plan.label }}</h2>
+      <h2>{{ t('plan_lifetime') if plan.days==0 else t('plan_1year') }}</h2>
       <div class="price">{{ plan.price_display }}</div>
       <ul>
         <li>{{ t('all_features') }}</li>

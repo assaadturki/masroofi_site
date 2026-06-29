@@ -64,6 +64,7 @@ TRANSLATIONS = {
         "feat3_h": "🛒 وضع الصندوق", "feat3_p": "استخدم هاتفك كقارئ رموز شريطية لتسوقك.",
         "feat4_h": "👨‍👩‍👧 متعدد العائلات", "feat4_p": "حسابات منفصلة، ميزانيات لكل فرد، وصول محدود للأطفال.",
         "downloads_count": "تحميل", "visits_count": "زيارة",
+        "plan_1year": "سنة واحدة", "plan_lifetime": "مدى الحياة",
     },
     "en": {
         "home": "Home",
@@ -125,6 +126,7 @@ TRANSLATIONS = {
         "feat3_h": "🛒 Cash register mode", "feat3_p": "Use your phone as a barcode scanner for your shopping.",
         "feat4_h": "👨‍👩‍👧 Multi-family", "feat4_p": "Separate accounts, per-member budgets, limited child access.",
         "downloads_count": "downloads", "visits_count": "visits",
+        "plan_1year": "1 Year", "plan_lifetime": "Lifetime",
     },
     "fr": {
         "home": "Accueil",
@@ -186,6 +188,7 @@ TRANSLATIONS = {
         "feat3_h": "🛒 Mode caisse", "feat3_p": "Scanner votre téléphone comme code-barres pour vos courses.",
         "feat4_h": "👨‍👩‍👧 Multi-famille", "feat4_p": "Comptes séparés, budgets par membre, accès enfants limité.",
         "downloads_count": "téléchargements", "visits_count": "visites",
+        "plan_1year": "1 an", "plan_lifetime": "À vie",
     },
 }
 
