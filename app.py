@@ -176,6 +176,14 @@ def init_db():
             created_at TEXT
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS stats (
+            key TEXT PRIMARY KEY,
+            count INTEGER DEFAULT 0
+        )
+    """)
+    conn.execute("INSERT OR IGNORE INTO stats (key, count) VALUES ('visits', 0)")
+    conn.execute("INSERT OR IGNORE INTO stats (key, count) VALUES ('downloads', 0)")
     conn.commit()
     conn.close()
 
@@ -242,10 +250,34 @@ def send_license_email(to_email, name, key, plan_label):
         print(f"[WARN] Failed to send license email: {e}")
 
 
+DOWNLOAD_FILE_URL = "https://github.com/assaadturki/masroofi_site/releases/download/app/masroofi_Setup_v4.2.exe"
+
+
+def _increment_stat(key):
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("UPDATE stats SET count = count + 1 WHERE key=?", (key,))
+    conn.commit(); conn.close()
+
+
+def _get_stat(key):
+    conn = sqlite3.connect(DB_PATH)
+    row = conn.execute("SELECT count FROM stats WHERE key=?", (key,)).fetchone()
+    conn.close()
+    return row[0] if row else 0
+
+
 # ── Routes ────────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
-    return render_template("index.html", plans=PLANS)
+    _increment_stat("visits")
+    return render_template("index.html", plans=PLANS,
+                            visits=_get_stat("visits"), downloads=_get_stat("downloads"))
+
+
+@app.route("/download")
+def download():
+    _increment_stat("downloads")
+    return redirect(DOWNLOAD_FILE_URL)
 
 
 @app.route("/manual")
