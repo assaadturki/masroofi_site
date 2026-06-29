@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>مصروفي — دليل الاستخدام</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --navy:#0a3a8a; --navy-dark:#05225f; --accent:#2563eb;
+    --bg:#f5f7fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Tahoma,system-ui,sans-serif;background:var(--bg);color:var(--text)}
+  header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;padding:0;text-align:center}
+  body{padding-top:0}
+  header .header-info{padding:20px}
+  header h1{margin:0 0 8px;font-size:2rem}
+  header a{color:#cfe0ff;text-decoration:none;font-size:.9rem}
+  .layout{display:flex;max-width:1100px;margin:0 auto;align-items:flex-start}
+  nav{width:240px;position:sticky;top:20px;padding:30px 14px;flex-shrink:0}
+  nav a{display:block;padding:8px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:.9rem;margin-bottom:2px}
+  nav a:hover{background:#e8edfb}
+  nav .grp{font-weight:700;color:var(--navy-dark);margin:14px 0 4px;font-size:.78rem;letter-spacing:.02em}
+  main{flex:1;padding:30px 30px 80px;min-width:0}
+  section{background:var(--card);border-radius:14px;padding:28px;margin-bottom:22px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  section h2{color:var(--navy-dark);margin-top:0;display:flex;align-items:center;gap:8px}
+  section h3{color:var(--navy);font-size:1.05rem}
+  section p, section li{color:#333;line-height:1.8}
+  code{background:#eef2ff;padding:2px 6px;border-radius:5px;font-size:.88em;color:#1e3a8a;direction:ltr;display:inline-block}
+  .tip{background:#f0fdf4;border-right:4px solid #16a34a;padding:10px 14px;border-radius:8px;font-size:.92rem;margin:10px 0}
+  .warn{background:#fff7ed;border-right:4px solid #f97316;padding:10px 14px;border-radius:8px;font-size:.92rem;margin:10px 0}
+  .pdfbtn{display:inline-block;background:var(--accent);color:#fff;padding:10px 20px;border-radius:9px;text-decoration:none;font-weight:600;margin-top:10px}
+  .navbar{background:#05225f;display:flex;justify-content:center;gap:24px;padding:10px 0;flex-wrap:wrap}
+  .navbar a{color:#cfe0ff !important;text-decoration:none;font-size:.9rem;font-weight:600;display:inline-block !important;padding:0;margin:0;background:none !important}
+  .navbar a:hover{color:#ffffff}
+  @media (max-width:800px){.layout{flex-direction:column}nav{width:100%;position:relative}}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
+  <nav class="navbar">
+    <a href="/">🏠 الرئيسية</a>
+    <a href="/manual">FR / EN</a>
+    <a href="/manual.pdf">📥 PDF</a>
+  </nav>
+  <div class="header-info">
+    <h1>📖 دليل استخدام مصروفي</h1>
+    <p>شرح كامل لجميع ميزات التطبيق</p>
+  </div>
+</header>
+
+<script>
+function adjustHeaderSpacing(){
+  var h = document.querySelector('header').offsetHeight;
+  document.body.style.paddingTop = h + 'px';
+}
+var bannerImg = document.getElementById('bannerImg');
+if (bannerImg.complete) adjustHeaderSpacing();
+bannerImg.addEventListener('load', adjustHeaderSpacing);
+window.addEventListener('resize', adjustHeaderSpacing);
+function adjustNavSticky(){
+  var h = document.querySelector('header').offsetHeight;
+  document.querySelector('nav').style.top = (h + 20) + 'px';
+}
+window.addEventListener('resize', adjustNavSticky);
+bannerImg.addEventListener('load', adjustNavSticky);
+if (bannerImg.complete) adjustNavSticky();
+</script>
+
+<div class="layout">
+  <nav>
+    <div class="grp">البداية</div>
+    <a href="#install">التثبيت والتفعيل</a>
+    <a href="#settings">الإعدادات (اللغة، العملة)</a>
+
+    <div class="grp">المصاريف</div>
+    <a href="#expenses">إضافة مصروف</a>
+    <a href="#weight">المنتجات المباعة بالوزن</a>
+    <a href="#scan-purchase">جلسة المسح (فاتورة الشراء)</a>
+
+    <div class="grp">التسوق</div>
+    <a href="#shopping">قائمة التسوق</a>
+    <a href="#pos">وضع الصندوق (الكاشير)</a>
+    <a href="#email-list">إرسال القائمة بالبريد</a>
+
+    <div class="grp">المخزون</div>
+    <a href="#inventory">إدارة المخزون</a>
+    <a href="#categories">فئات بعمق غير محدود</a>
+    <a href="#barcode">الرموز الشريطية والوزن</a>
+    <a href="#images">صور المنتجات</a>
+    <a href="#classify">تصنيف ضروري / كمالي</a>
+
+    <div class="grp">العائلة</div>
+    <a href="#family">حسابات وميزانيات الأفراد</a>
+    <a href="#login">تسجيل الدخول ووصول الأطفال</a>
+
+    <div class="grp">الراتب والدخل</div>
+    <a href="#salary-income">مصادر الدخل المتكررة</a>
+    <a href="#one-time-income">الدخل غير المتكرر</a>
+    <a href="#comparison">مقارنة الدخل والمصاريف شهريًا</a>
+
+    <div class="grp">الفعاليات والمشاريع</div>
+    <a href="#events">إنشاء فعالية</a>
+    <a href="#vendors">مزودو الخدمات والتسعير</a>
+    <a href="#tasks">المهام وجهات الاتصال</a>
+
+    <div class="grp">جهات الاتصال</div>
+    <a href="#contacts">دفتر جهات الاتصال</a>
+    <a href="#contact-photo">الصورة والتقصيص</a>
+
+    <div class="grp">الوصفات</div>
+    <a href="#recipes">الوصفات والاقتراحات</a>
+
+    <div class="grp">أخرى</div>
+    <a href="#budgets">الميزانيات</a>
+    <a href="#prices">مقارنة الأسعار بين المتاجر</a>
+    <a href="#export">استيراد / تصدير Excel</a>
+    <a href="#multidevice">المزامنة بين عدة أجهزة</a>
+  </nav>
+
+  <main>
+
+    <section id="install">
+      <h2>🔑 التثبيت والتفعيل</h2>
+      <p>حمّل ملف التثبيت من الصفحة الرئيسية للموقع، شغّله، ثم افتح مصروفي.</p>
+      <p>عند أول تشغيل، تظهر استمارة تسجيل (الاسم + البريد الإلكتروني). يمكنك:</p>
+      <ul>
+        <li>ترك حقل <b>License Key</b> فارغًا → تبدأ تجربة مجانية لمدة <b>30 يومًا</b> تلقائيًا</li>
+        <li>لصق مفتاح تم شراؤه مسبقًا → تفعيل فوري</li>
+      </ul>
+      <p>لتفعيل أو تغيير المفتاح لاحقًا: القائمة <b>Help → Activate License</b>.</p>
+      <div class="tip">💡 الحساب مرتبط بالجهاز (المعالج/القرص) — إعادة تثبيت التطبيق لا تُعيد ضبط فترة التجربة.</div>
+    </section>
+
+    <section id="settings">
+      <h2>⚙️ الإعدادات</h2>
+      <p>زر <code>⚙️ Settings</code> في أسفل الشاشة (أو القائمة <b>Tools → Settings</b>):</p>
+      <ul>
+        <li><b>اللغة</b>: عربي / إنجليزي / فرنسي — يُعاد تشغيل التطبيق لتطبيق التغيير</li>
+        <li><b>العملة</b>: 16 عملة متاحة، تُطبّق في كل مكان (المبالغ، الإجماليات، التقارير)</li>
+        <li><b>محوّل العملات</b> مدمج — أسعار حية عبر واجهة برمجية مجانية</li>
+        <li><b>مسار قاعدة البيانات</b> — يشير إلى مجلد OneDrive/Google Drive لاستخدام نفس البيانات على عدة أجهزة</li>
+        <li><b>تنبيهات بدء التشغيل</b> — تفعيل/تعطيل تنبيه نفاد المخزون وتحذير الميزانية</li>
+      </ul>
+    </section>
+
+    <section id="expenses">
+      <h2>💸 إضافة مصروف</h2>
+      <p>تبويب <b>Expenses</b> ← املأ النموذج على اليسار: الكود (أو المسح)، الوصف، المبلغ، الفئة، المتجر، التاريخ، العملة.</p>
+      <p>يمكنك أيضًا تخصيص المصروف لأحد <b>أفراد العائلة</b> عبر تبويب Family.</p>
+    </section>
+
+    <section id="weight">
+      <h2>⚖️ المنتجات المباعة بالوزن (طماطم، جبن…)</h2>
+      <p>للمنتجات التي يعتمد سعرها على الوزن:</p>
+      <ol>
+        <li>في <b>Inventory</b>، اضبط مرة واحدة: "Sold by" = كغ/لتر، وسعر الكيلو</li>
+        <li>في <b>Expenses</b>، أدخل <b>المبلغ الإجمالي المدفوع</b> و<b>الوزن المذكور في الفاتورة</b></li>
+        <li>يحسب التطبيق سعر الكيلو تلقائيًا ويحفظه للمقارنة مع مرور الوقت</li>
+      </ol>
+      <div class="tip">💡 في قائمة التسوق، أدخل الوزن الذي تنوي شراءه للحصول على تقدير للتكلفة قبل التوجه إلى المتجر.</div>
+    </section>
+
+    <section id="scan-purchase">
+      <h2>🧾 جلسة المسح — "فاتورة الشراء"</h2>
+      <p>زر <b>🛒 Scan Purchase Session</b> (Expenses): اختر المتجر مرة واحدة، ثم امسح جميع منتجاتك دون انقطاع. اضغط مرتين على أي سطر لتصحيح الاسم/السعر/الوزن/الكمية قبل التأكيد.</p>
+    </section>
+
+    <section id="shopping">
+      <h2>🛍️ قائمة التسوق</h2>
+      <p>تبويب <b>Shopping</b>: أضف منتجات يدويًا، من المخزون، أو بالمسح. رمز الألوان: 🟢 ضروري، 🔴 كمالي، أبيض = عادي — لمعرفة أين يمكنك التوفير بسرعة.</p>
+    </section>
+
+    <section id="pos">
+      <h2>📷 وضع الصندوق (المسح بالهاتف)</h2>
+      <p>استخدم تطبيق مسح على هاتفك (مثل "BT Scanner") متصل عبر البلوتوث بجهازك.</p>
+      <ol>
+        <li>اضغط على تبويب Shopping (أو Inventory/Expenses) ← تفتح نافذة مسح عائمة تلقائيًا، تبقى في المقدمة دائمًا</li>
+        <li>امسح منتجًا ← يُضاف فورًا إلى القائمة، الكمية +1 إذا كان موجودًا مسبقًا</li>
+        <li>إذا كان المنتج غير معروف، يبحث التطبيق عنه تلقائيًا عبر الإنترنت (Open Food Facts، قواعد بيانات UPC، Open Library للكتب…)</li>
+      </ol>
+      <div class="warn">⚠️ تتكيّف نافذة المسح مع التبويب النشط: Shopping ← قائمة التسوق، Inventory ← بطاقة المنتج، Expenses ← نموذج المصروف. لا يحدث الاثنان معًا أبدًا.</div>
+    </section>
+
+    <section id="email-list">
+      <h2>📧 إرسال قائمة التسوق</h2>
+      <p>زر <b>Email List</b>: يرسل صفحة HTML تفاعلية بخانات اختيار حقيقية، تُفتح على هاتفك — ضع علامة ✓ تدريجيًا داخل المتجر. كل منتج يعرض أيضًا رمزه الشريطي للتحقق من السعر/التوافر عند أجهزة المتجر.</p>
+      <p>زر <b>PDF</b> يولّد نسخة قابلة للطباعة بخانات ☐ تُملأ يدويًا.</p>
+      <p>يمكنك اختيار <b>عدة مستلمين</b> في الوقت نفسه من دفتر جهات الاتصال، بالإضافة إلى عناوين تُكتب يدويًا عند الحاجة.</p>
+    </section>
+
+    <section id="inventory">
+      <h2>📦 إدارة المخزون</h2>
+      <p>نموذج الإضافة على اليسار، القائمة في الوسط (الكود + الاسم)، البطاقة التفصيلية على اليمين (صورة، علامة تجارية، فئة، مخزون، سعر). اضغط على أي سطر لعرضه بشكل أكبر.</p>
+      <p>الأزرار المتاحة: Edit Item، Delete Selected (للمسؤول فقط)، Quick Edit Price، Adjust Stock، Stock Movements، Low Stock Alert، Add to Shopping، From Expenses (يجلب المشتريات غير المضافة للمخزون بعد)، Import/Export Excel، PDF Catalog (مع الرموز الشريطية).</p>
+    </section>
+
+    <section id="categories">
+      <h2>🏷️ فئات بعمق غير محدود</h2>
+      <p>لا حد لـ 3 مستويات بعد الآن — كل فئة يمكن أن تحتوي على عدد غير محدود من المستويات الفرعية.</p>
+      <p>الإدارة: القائمة <b>Tools → Manage Categories → Product Categories</b> — شجرة كاملة مع إضافة/حذف، استيراد/تصدير Excel بالمسار الكامل (مثال: <code>أغذية &gt; بقالة &gt; معكرونة</code>).</p>
+    </section>
+
+    <section id="barcode">
+      <h2>📊 الرموز الشريطية الديناميكية (المنتجات الموزونة في المتجر)</h2>
+      <p>بعض الرموز الشريطية تحتوي على السعر مباشرة (منتجات موزونة على ميزان المتجر). يفكّ مصروفي تشفيرها ويستخدم <b>معرّفًا ثابتًا</b> (مستقلًا عن السعر الممسوح) للعثور دائمًا على المنتج الصحيح، بغض النظر عن اختلاف السعر بين عملية شراء وأخرى.</p>
+    </section>
+
+    <section id="images">
+      <h2>🖼️ صور المنتجات</h2>
+      <p>في بطاقة تفاصيل المنتج: أزرار <b>Add Picture</b> / <b>Delete Picture</b>. مرّر المؤشر فوق الصورة لمعاينتها بشكل مكبّر.</p>
+    </section>
+
+    <section id="classify">
+      <h2>🟢🟡🔴 تصنيف ضروري / عادي / كمالي</h2>
+      <p>زر <b>🏷️ Classify</b>: صنّف منتجاتك بشكل جماعي حسب الفئة، لتحديد أين يمكن تقليل المصاريف في قائمة التسوق بسهولة.</p>
+    </section>
+
+    <section id="family">
+      <h2>👨‍👩‍👧 حسابات وميزانيات الأفراد</h2>
+      <p>تبويب <b>Family</b>: أضف كل فرد من العائلة بميزانية شهرية. تُدمج ميزانيات العائلة تلقائيًا في <b>Budget Summary</b> وتنبيهات الراتب.</p>
+      <p>تخصيص مصروف لفرد: حدّده في Expenses، ثم في Family اختر الفرد ← <b>✔ Assign</b>.</p>
+    </section>
+
+    <section id="login">
+      <h2>🔐 تسجيل الدخول ووصول الأطفال المحدود</h2>
+      <p>شاشة تسجيل دخول عند بدء التشغيل (اسم المستخدم + كلمة المرور). 3 أدوار:</p>
+      <ul>
+        <li>👑 <b>Admin</b> — وصول كامل</li>
+        <li>👤 <b>Parent</b> — كل شيء إلا إدارة الأفراد</li>
+        <li>👦 <b>Child</b> — Shopping + استعراض المخزون (الإضافة للقائمة فقط) + لوحة تحكم بميزانيته الخاصة (المتبقي للصرف، آخر المصاريف)</li>
+      </ul>
+      <p>ضبط كلمة مرور لفرد: Family ← اضغط مرتين على الفرد ← Edit.</p>
+    </section>
+
+    <section id="salary-income">
+      <h2>💼 الراتب والدخل — مصادر متكررة</h2>
+      <p>تبويب محمي بكلمة مرور، مدمج في 3 تبويبات فرعية.</p>
+      <p><b>مصادر الدخل المتكررة</b>: أضف عدد المصادر الذي تحتاجه (راتب، عمل حر، إيجار مُحصّل...)، كل واحدة بمبلغها وعملتها ويوم دفعها الخاص (1 إلى 28). تُضاف كل مصدر <b>تلقائيًا</b> وبشكل مستقل عن الأخرى.</p>
+      <ul>
+        <li>⏸ <b>إيقاف/استئناف</b> مصدر دون حذفه</li>
+        <li>🗑 حذف مصدر</li>
+        <li><b>سجل</b> لجميع الدفعات السابقة، حسب المصدر</li>
+        <li><b>رسم بياني</b> للتطور الشهري (آخر 12 شهرًا)</li>
+      </ul>
+      <div class="tip">💡 عند أول تشغيل بعد التحديث، يُحوَّل راتبك الواحد القديم تلقائيًا إلى مصدر باسم "Salary".</div>
+    </section>
+
+    <section id="one-time-income">
+      <h2>💵 الدخل غير المتكرر</h2>
+      <p>للمداخيل غير المتكررة (بيع شيء، هدية، استرداد مال...). نموذج بسيط: وصف، مبلغ، فئة/مصدر. مخطط دائري يعرض التوزيع حسب المصدر.</p>
+    </section>
+
+    <section id="comparison">
+      <h2>📊 مقارنة الدخل والمصاريف شهريًا</h2>
+      <p>التبويب الفرعي الثالث للراتب والدخل. يعرض، على مدى 12 شهرًا الأخيرة:</p>
+      <ul>
+        <li>رسم بياني بالأعمدة (الدخل بالأخضر، المصاريف بالأحمر) + خط الصافي</li>
+        <li>جدول تفصيلي مع <b>نسبة تطور الصافي مقارنة بالشهر السابق</b> (🟢 تحسن، 🔴 تراجع)</li>
+      </ul>
+    </section>
+
+    <section id="events">
+      <h2>🎉 الفعاليات والمشاريع — إنشاء فعالية</h2>
+      <p>لكل ما يخرج عن الروتين اليومي: زفاف، عيد ميلاد، سفر، إقامة طبية، تجديد منزل...</p>
+      <p>عند الإنشاء، أدخل الاسم، النوع، التاريخ، و<b>ميزانية إجمالية + عملة</b>. رابطان تلقائيان:</p>
+      <ul>
+        <li>إذا كانت الميزانية أكبر من 0 ← يُنشأ سطر <b>one-time</b> تلقائيًا في تبويب Budgets، بالعملة الصحيحة</li>
+        <li>إذا فعّلت "Needs a loan?" ← يُنشأ سجل في جدول القروض</li>
+      </ul>
+      <div class="warn">⚠️ حذف فعالية يحذف أيضًا ميزانيتها وقرضها المرتبط ومهامها — تحقق قبل التأكيد.</div>
+    </section>
+
+    <section id="vendors">
+      <h2>🏨 مزودو الخدمات والتسعير المتكيف</h2>
+      <p>لكل فعالية، أضف مزودي خدمات ببياناتهم (هاتف، بريد إلكتروني، موقع، بلد) وسعرهم. يتكيف نموذج السعر <b>تلقائيًا</b> حسب الفئة المختارة:</p>
+      <ul>
+        <li>🏨 فندق / 💉 عيادة / 🏥 مستشفى ← خيار الإقامة (غرفة فقط / مع الفطور / نصف إقامة / إقامة كاملة) + سعر/ليلة</li>
+        <li>🍽 مطعم ← قائمة أو بوفيه + سعر/شخص</li>
+        <li>🎪 صالة حفلات ← سعر/كرسي أو سعر إجمالي</li>
+        <li>🛫 شركة طيران ← الدرجة (اقتصادية/أعمال/أولى) + سعر/تذكرة</li>
+        <li>📷 مصوّر ← بالجلسة أو بالصورة</li>
+      </ul>
+      <p>زر <b>"= Calculate"</b> يحسب السعر الإجمالي تلقائيًا (الكمية × سعر الوحدة) — قابل للتعديل يدويًا عند الحاجة. يمكن لكل مزود أن يُفوتر <b>بعملته الخاصة</b> (مفيد لزفاف في الخارج).</p>
+    </section>
+
+    <section id="tasks">
+      <h2>📋 المهام وإسنادها إلى جهات الاتصال</h2>
+      <p><b>اضغط مرتين على فعالية</b> في القائمة لفتح نافذة مهامها.</p>
+      <ul>
+        <li>أضف مهمة، أسندها لجهة اتصال، حدد موعدًا نهائيًا</li>
+        <li>اضغط على الخانة ☐ لتعليم مهمة كمكتملة (☑)</li>
+        <li>اضغط مرتين على مهمة لتعديلها (تغيير الاسم، إسنادها لشخص آخر، تغيير الحالة)</li>
+        <li>زر <b>📧 Send Tasks by Email</b>: يرسل بريدًا لكل شخص مُسنَد، يحتوي <b>فقط على مهامه الخاصة</b></li>
+      </ul>
+    </section>
+
+    <section id="contacts">
+      <h2>👤 دفتر جهات الاتصال</h2>
+      <p>تبويب مخصص لإدارة الأشخاص الذين تُسند إليهم مهام الفعاليات (أو ترسل لهم قائمة التسوق). الاسم الأول، اسم العائلة، البريد الإلكتروني، وعدد غير محدود من <b>أرقام الهاتف</b> لكل جهة اتصال:</p>
+      <ul>
+        <li>اختر <b>البلد</b> ← يُملأ مفتاح الاتصال تلقائيًا (قابل للتعديل)</li>
+        <li>نوع الرقم: Mobile / Home / Work / WhatsApp / Other</li>
+      </ul>
+      <p>في <b>Shopping → Email List</b>، يمكنك الآن اختيار عدة مستلمين مباشرة من دفتر جهات الاتصال هذا (بالإضافة إلى عناوين تُكتب يدويًا).</p>
+    </section>
+
+    <section id="contact-photo">
+      <h2>✂️ صورة جهة الاتصال والتقصيص</h2>
+      <p>اضغط "Add Picture" على جهة اتصال لفتح أداة التقصيص التفاعلية:</p>
+      <ul>
+        <li>مربع تحديد يمكنك <b>سحبه</b> لوضعه في أي مكان على الصورة</li>
+        <li>شريط تمرير لـ<b>تكبير/تصغير</b> المنطقة المحددة</li>
+        <li>"✅ Crop & Save" يطبّق المنطقة المختارة بدقة</li>
+      </ul>
+    </section>
+
+    <section id="recipes">
+      <h2>🍽️ الوصفات</h2>
+      <p>أنشئ وصفة بإدراج المكونات بـ<b>اسم عام</b> (مثل "Spaghetti")، بغض النظر عن العلامة التجارية المتوفرة — البحث <b>متسامح مع الأخطاء الإملائية</b>.</p>
+      <ul>
+        <li><b>Cook This!</b> على وصفة ← يتحقق من المخزون، يضيف تلقائيًا الناقص إلى قائمة التسوق</li>
+        <li><b>Suggest Recipes</b> ← يحلل مخزونك ويقترح الوصفات القابلة للتحضير، مرتبة حسب نسبة المكونات المتوفرة</li>
+      </ul>
+    </section>
+
+    <section id="budgets">
+      <h2>📅 الميزانيات</h2>
+      <p>ميزانيات حسب الفئة مع تكرار وإعادة ضبط تلقائية. يجمع <b>Budget Summary</b> بين ميزانيات الفئات وميزانيات العائلة لنظرة شاملة.</p>
+      <p>يمكن لكل ميزانية أن تكون بـ<b>عملتها الخاصة</b> (مفيد للميزانيات المرتبطة بفعالية في الخارج).
+      ⚠️ الإجمالي الكلي المجمّع لا يقوم بعد بتحويل بين العملات المختلفة.</p>
+    </section>
+
+    <section id="prices">
+      <h2>💰 مقارنة الأسعار بين المتاجر</h2>
+      <p>كل عملية مسح/شراء مع تحديد متجر تُغذّي سجل الأسعار. يعرض <b>Price Comparison</b>، لكل منتج، المتجر الأقل سعرًا (🟢) والأعلى سعرًا (🔴)، مع التوفير المحتمل.</p>
+    </section>
+
+    <section id="export">
+      <h2>📤 استيراد / تصدير Excel</h2>
+      <p>متوفر لـ Inventory، Expenses، Income، Shopping List و Categories. مفيد للنسخ الاحتياطي، التعديل الجماعي في Excel، أو نقل البيانات.</p>
+    </section>
+
+    <section id="multidevice">
+      <h2>☁️ استخدام مصروفي على عدة أجهزة</h2>
+      <p>Settings ← مسار قاعدة البيانات ← اختر مجلدًا متزامنًا (OneDrive/Google Drive). ثبّت مصروفي على الجهاز الآخر، أشر إلى نفس المجلد المتزامن ← نفس البيانات في كل مكان.</p>
+    </section>
+
+    <div style="text-align:center;margin-top:20px">
+      <a class="pdfbtn" href="/manual.pdf">📥 تحميل هذا الدليل بصيغة PDF</a>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

@@ -285,6 +285,11 @@ def manual():
     return render_template("manual.html")
 
 
+@app.route("/manual/ar")
+def manual_ar():
+    return render_template("manual_ar.html")
+
+
 @app.route("/manual.pdf")
 def manual_pdf():
     return app.send_static_file("manual.pdf")
