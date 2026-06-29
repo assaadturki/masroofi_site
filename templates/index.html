@@ -44,7 +44,7 @@
   <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
   <nav class="navbar">
     <a href="/">🏠 {{ t('home') }}</a>
-    <a href="/manual">📖 {{ t('manual') }}</a>
+    <a href="{{ '/manual/ar' if lang=='ar' else '/manual' }}">📖 {{ t('manual') }}</a>
     <a href="/login">🔐 {{ t('login') }}</a>
     <span class="lang-switch">
       <a href="{{ url_for('set_lang', lang='fr') }}" class="{{ 'active' if lang=='fr' }}">FR</a>
@@ -81,7 +81,7 @@ window.addEventListener('resize', adjustHeaderSpacing);
     </a>
     <p style="color:var(--muted);margin-top:12px;font-size:.9rem">{{ t('trial_note') }}</p>
     <p style="color:var(--muted);margin-top:6px;font-size:.82rem">📥 {{ downloads }} {{ t('downloads_count') }} · 👀 {{ visits }} {{ t('visits_count') }}</p>
-    <p style="margin-top:10px"><a href="/manual" style="color:var(--accent);font-weight:600;text-decoration:none">{{ t('view_manual') }}</a></p>
+    <p style="margin-top:10px"><a href="{{ '/manual/ar' if lang=='ar' else '/manual' }}" style="color:var(--accent);font-weight:600;text-decoration:none">{{ t('view_manual') }}</a></p>
   </div>
 
   <h2 style="text-align:center;color:var(--navy-dark);margin-bottom:30px">{{ t('choose_license') }}</h2>
