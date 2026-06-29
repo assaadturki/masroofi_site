@@ -13,8 +13,9 @@
   body{margin:0;font-family:'Segoe UI',Tahoma,system-ui,sans-serif;background:var(--bg);color:var(--text)}
   header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;padding:0;text-align:center}
   body{padding-top:0}
-  header .header-info{padding:20px}
-  header h1{margin:0 0 8px;font-size:2rem}
+  header .header-info{padding:10px 20px}
+  header h1{margin:0;font-size:1.15rem;line-height:1.3}
+  header .header-info p{margin:0;font-size:.78rem;color:#cfe0ff}
   header a{color:#cfe0ff;text-decoration:none;font-size:.9rem}
   .layout{display:flex;max-width:1100px;margin:0 auto;align-items:flex-start}
   nav{width:240px;position:sticky;top:20px;padding:30px 14px;flex-shrink:0}
@@ -40,14 +41,16 @@
 
 <header>
   <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
-  <nav class="navbar">
-    <a href="/">🏠 الرئيسية</a>
-    <a href="/manual">FR / EN</a>
-    <a href="/manual.pdf">📥 PDF</a>
-  </nav>
-  <div class="header-info">
-    <h1>📖 دليل استخدام مصروفي</h1>
-    <p>شرح كامل لجميع ميزات التطبيق</p>
+  <div class="navbar" style="justify-content:space-between;align-items:center;padding:10px 24px">
+    <div class="header-info" style="padding:0;text-align:right">
+      <h1>📖 دليل استخدام مصروفي</h1>
+      <p>شرح كامل لجميع ميزات التطبيق</p>
+    </div>
+    <div style="display:flex;gap:18px;padding:0;width:auto">
+      <a href="/manual.pdf">📥 PDF</a>
+      <a href="/manual">FR / EN</a>
+      <a href="/">🏠 الرئيسية</a>
+    </div>
   </div>
 </header>
 
