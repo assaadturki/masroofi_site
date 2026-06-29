@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Proposer un bon plan — Masroofi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f7fb;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px}
+  .card{background:#fff;border-radius:14px;padding:32px;width:100%;max-width:420px;box-shadow:0 4px 18px rgba(0,0,0,.1)}
+  h2{color:#05225f;margin-top:0}
+  p.sub{color:#6b7280;font-size:.88rem;margin-top:-8px}
+  label{font-size:.85rem;font-weight:600;display:block;margin-top:12px}
+  input,select{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;margin-top:4px;box-sizing:border-box}
+  button{width:100%;padding:11px;margin-top:18px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
+  .error{color:#dc2626;font-size:.85rem;margin-top:10px}
+  .note{font-size:.78rem;color:#9ca3af;margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>👤 Proposer un bon plan</h2>
+  <p class="sub">Réservé aux clients Masroofi avec une licence valide.</p>
+  <form method="POST">
+    <label>Prénom *</label>
+    <input type="text" name="first_name" required>
+    <label>Nom</label>
+    <input type="text" name="last_name">
+    <label>Email *</label>
+    <input type="email" name="email" required>
+    <label>Pays *</label>
+    <select name="country" required>
+      <option value="">— Choisir —</option>
+      {% for c in countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+    <label>Clé de licence Masroofi *</label>
+    <input type="text" name="license_key" placeholder="Colle ta clé de licence" required>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <button type="submit">Continuer</button>
+  </form>
+  <p class="note">Tu retrouveras ta clé de licence dans Masroofi → Help → Activate License.</p>
+</div>
+</body>
+</html>

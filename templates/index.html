@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ lang }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
 <head>
 <meta charset="UTF-8">
-<title>Masroofi — Gestion financière familiale</title>
+<title>Masroofi</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root{
@@ -10,80 +10,97 @@
     --bg:#f5f7fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
-  header{background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;padding:60px 20px;text-align:center}
-  header h1{font-size:2.6rem;margin:0 0 10px}
-  header p{font-size:1.15rem;opacity:.9;max-width:600px;margin:0 auto}
+  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding-top:0}
+  header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;padding:0;text-align:center}
   .container{max-width:1000px;margin:0 auto;padding:50px 20px}
   .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:60px}
   .feature{background:var(--card);border-radius:14px;padding:24px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
   .feature h3{margin:0 0 8px;font-size:1.05rem;color:var(--navy)}
   .feature p{margin:0;color:var(--muted);font-size:.92rem}
   .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
-  .plan{background:var(--card);border-radius:18px;padding:32px;box-shadow:0 4px 18px rgba(0,0,0,.08);text-align:center;border:2px solid transparent;transition:.2s}
+  .plan{background:var(--card);border-radius:18px;padding:32px;box-shadow:0 4px 18px rgba(0,0,0,.08);text-align:center;border:2px solid transparent}
   .plan.highlight{border-color:var(--accent)}
   .plan h2{margin:0 0 6px;color:var(--navy-dark)}
   .price{font-size:2.4rem;font-weight:700;color:var(--accent);margin:10px 0}
-  .price span{font-size:1rem;color:var(--muted);font-weight:400}
-  .plan ul{list-style:none;padding:0;margin:20px 0;text-align:left;color:#444;font-size:.9rem}
+  .plan ul{list-style:none;padding:0;margin:20px 0;text-align:start;color:#444;font-size:.9rem}
   .plan ul li{padding:6px 0}
   .plan ul li:before{content:"✓ ";color:#16a34a;font-weight:700}
-  button.buy{width:100%;padding:14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;font-size:1rem;cursor:pointer;margin-top:10px}
-  button.buy:hover{background:var(--navy)}
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:50}
-  .modal-overlay.open{display:flex}
-  .modal{background:#fff;border-radius:14px;padding:28px;width:90%;max-width:380px}
-  .modal h3{margin:0 0 16px;color:var(--navy-dark)}
-  .modal input{width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:8px;font-size:.95rem}
-  .modal .row{display:flex;gap:8px}
-  .modal .row button{flex:1;padding:10px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+  a.buy{display:block;width:100%;padding:14px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;font-size:1rem;text-decoration:none;margin-top:10px}
   .test-banner{background:#fff3cd;border:1px solid #ffe58f;color:#7a5d00;text-align:center;padding:8px;font-size:.85rem}
+  .navbar{background:#05225f;display:flex;justify-content:center;align-items:center;gap:24px;padding:10px 0;flex-wrap:wrap}
+  .navbar a{color:#cfe0ff;text-decoration:none;font-size:.9rem;font-weight:600}
+  .navbar a:hover{color:#ffffff}
+  .lang-switch{display:flex;gap:6px}
+  .lang-switch a{padding:2px 6px;border-radius:5px;font-size:.85rem}
+  .lang-switch a.active{background:#ffffff;color:#05225f !important}
   footer{text-align:center;padding:30px;color:var(--muted);font-size:.85rem}
 </style>
 </head>
 <body>
 
-<div class="test-banner">🧪 Mode TEST — sur Gumroad, active "Enable test purchases" dans les paramètres du produit pour payer 0.00 sans vraie carte.</div>
+<div class="test-banner">{{ t('test_banner') }}</div>
 
-<header>
-  <h1>مصـروفي — Masroofi</h1>
-  <p>L'application de gestion financière familiale complète : dépenses, inventaire, listes de courses, budgets, et bien plus.</p>
+<header style="padding:0">
+  <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
+  <nav class="navbar">
+    <a href="/">🏠 {{ t('home') }}</a>
+    <a href="/manual">📖 {{ t('manual') }}</a>
+    <a href="/login">🔐 {{ t('login') }}</a>
+    <span class="lang-switch">
+      <a href="{{ url_for('set_lang', lang='fr') }}" class="{{ 'active' if lang=='fr' }}">FR</a>
+      <a href="{{ url_for('set_lang', lang='en') }}" class="{{ 'active' if lang=='en' }}">EN</a>
+      <a href="{{ url_for('set_lang', lang='ar') }}" class="{{ 'active' if lang=='ar' }}">AR</a>
+    </span>
+  </nav>
 </header>
 
+<script>
+function adjustHeaderSpacing(){
+  var h = document.querySelector('header').offsetHeight;
+  document.body.style.paddingTop = h + 'px';
+}
+var bannerImg = document.getElementById('bannerImg');
+if (bannerImg.complete) adjustHeaderSpacing();
+bannerImg.addEventListener('load', adjustHeaderSpacing);
+window.addEventListener('resize', adjustHeaderSpacing);
+</script>
+
 <div class="container">
+  <p style="text-align:center;color:var(--muted);max-width:600px;margin:0 auto 30px">{{ t('tagline') }}</p>
   <div class="features">
-    <div class="feature"><h3>📊 Suivi des dépenses</h3><p>Catégories illimitées, scan de codes-barres, multi-devises.</p></div>
-    <div class="feature"><h3>📦 Inventaire intelligent</h3><p>Suivi de stock, alertes, comparaison de prix entre magasins.</p></div>
-    <div class="feature"><h3>🛒 Mode caisse</h3><p>Scanner votre téléphone comme code-barres pour vos courses.</p></div>
-    <div class="feature"><h3>👨‍👩‍👧 Multi-famille</h3><p>Comptes séparés, budgets par membre, accès enfants limité.</p></div>
+    <div class="feature"><h3>{{ t('feat1_h') }}</h3><p>{{ t('feat1_p') }}</p></div>
+    <div class="feature"><h3>{{ t('feat2_h') }}</h3><p>{{ t('feat2_p') }}</p></div>
+    <div class="feature"><h3>{{ t('feat3_h') }}</h3><p>{{ t('feat3_p') }}</p></div>
+    <div class="feature"><h3>{{ t('feat4_h') }}</h3><p>{{ t('feat4_p') }}</p></div>
   </div>
 
   <div style="text-align:center;margin:40px 0 60px">
-    <a href="https://onedrive.live.com/download?id=2C4B227CC9B97E64%21se65d6ecbb70b460ba1b19193c7ab0d93&cid=2c4b227cc9b97e64"
+    <a href="https://github.com/assaadturki/masroofi_site/releases/download/app/masroofi_Setup_v4.2.exe"
        style="display:inline-block;background:var(--navy-dark);color:#fff;padding:18px 36px;border-radius:12px;font-weight:700;font-size:1.15rem;text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.15)">
-      📥 Télécharger Masroofi (Windows)
+      {{ t('download_btn') }}
     </a>
-    <p style="color:var(--muted);margin-top:12px;font-size:.9rem">Essai gratuit de 30 jours — aucune carte requise pour commencer</p>
+    <p style="color:var(--muted);margin-top:12px;font-size:.9rem">{{ t('trial_note') }}</p>
+    <p style="margin-top:10px"><a href="/manual" style="color:var(--accent);font-weight:600;text-decoration:none">{{ t('view_manual') }}</a></p>
   </div>
 
-  <h2 style="text-align:center;color:var(--navy-dark);margin-bottom:30px">Choisissez votre licence</h2>
+  <h2 style="text-align:center;color:var(--navy-dark);margin-bottom:30px">{{ t('choose_license') }}</h2>
   <div class="plans">
     {% for id, plan in plans.items() %}
     <div class="plan {{ 'highlight' if id=='masroofi-lifetime' else '' }}">
       <h2>{{ plan.label }}</h2>
       <div class="price">{{ plan.price_display }}</div>
       <ul>
-        <li>Toutes les fonctionnalités incluses</li>
-        <li>Mises à jour gratuites</li>
-        {% if plan.days == 0 %}<li>Aucun renouvellement</li>{% else %}<li>Valide 365 jours</li>{% endif %}
+        <li>{{ t('all_features') }}</li>
+        <li>{{ t('free_updates') }}</li>
+        {% if plan.days == 0 %}<li>{{ t('no_renewal') }}</li>{% else %}<li>{{ t('valid_365') }}</li>{% endif %}
       </ul>
-      <a class="buy" href="{{ plan.gumroad_url }}" style="display:block;text-decoration:none">Acheter sur Gumroad →</a>
+      <a class="buy" href="{{ url_for('register', plan=id) }}">{{ t('buy_btn') }}</a>
     </div>
     {% endfor %}
   </div>
 </div>
 
-<footer>© 2026 Lassaad Turki — Masroofi. Contact : assaadturki@gmail.com</footer>
+<footer>© 2026 Lassaad Turki — Masroofi. Contact : info@masroofi.deals</footer>
 
 </body>
 </html>

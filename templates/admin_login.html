@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Admin — Masroofi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f7fb;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+  .card{background:#fff;border-radius:14px;padding:32px;width:90%;max-width:340px;box-shadow:0 4px 18px rgba(0,0,0,.1)}
+  h2{color:#05225f;margin-top:0}
+  input{width:100%;padding:10px;margin:10px 0;border:1px solid #ccc;border-radius:8px}
+  button{width:100%;padding:10px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
+  .error{color:#dc2626;font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🔒 Admin — Bons plans</h2>
+  <form method="POST">
+    <input type="password" name="password" placeholder="Mot de passe admin" required autofocus>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <button type="submit">Entrer</button>
+  </form>
+</div>
+</body>
+</html>

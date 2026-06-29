@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Masroofi — Manuel d'utilisation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --navy:#0a3a8a; --navy-dark:#05225f; --accent:#2563eb;
+    --bg:#f5f7fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+  header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;padding:0;text-align:center}
+  body{padding-top:0}
+  header .header-info{padding:20px}
+  header h1{margin:0 0 8px;font-size:2rem}
+  header a{color:#cfe0ff;text-decoration:none;font-size:.9rem}
+  .layout{display:flex;max-width:1100px;margin:0 auto;align-items:flex-start}
+  nav{width:240px;position:sticky;top:20px;padding:30px 14px;flex-shrink:0}
+  nav a{display:block;padding:8px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:.9rem;margin-bottom:2px}
+  nav a:hover{background:#e8edfb}
+  nav .grp{font-weight:700;color:var(--navy-dark);margin:14px 0 4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+  main{flex:1;padding:30px 30px 80px;min-width:0}
+  section{background:var(--card);border-radius:14px;padding:28px;margin-bottom:22px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  section h2{color:var(--navy-dark);margin-top:0;display:flex;align-items:center;gap:8px}
+  section h3{color:var(--navy);font-size:1.05rem}
+  section p, section li{color:#333;line-height:1.55}
+  code{background:#eef2ff;padding:2px 6px;border-radius:5px;font-size:.88em;color:#1e3a8a}
+  .tip{background:#f0fdf4;border-left:4px solid #16a34a;padding:10px 14px;border-radius:8px;font-size:.92rem;margin:10px 0}
+  .warn{background:#fff7ed;border-left:4px solid #f97316;padding:10px 14px;border-radius:8px;font-size:.92rem;margin:10px 0}
+  .pdfbtn{display:inline-block;background:var(--accent);color:#fff;padding:10px 20px;border-radius:9px;text-decoration:none;font-weight:600;margin-top:10px}
+  .navbar{background:#05225f;display:flex;justify-content:center;gap:24px;padding:10px 0;flex-wrap:wrap}
+  .navbar a{color:#cfe0ff !important;text-decoration:none;font-size:.9rem;font-weight:600;display:inline-block !important;padding:0;margin:0;background:none !important}
+  .navbar a:hover{color:#ffffff}
+  @media (max-width:800px){.layout{flex-direction:column}nav{width:100%;position:relative}}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
+  <nav class="navbar">
+    <a href="/">🏠 Accueil</a>
+    <a href="/manual.pdf">📥 PDF</a>
+  </nav>
+  <div class="header-info">
+    <h1>📖 Manuel d'utilisation — Masroofi</h1>
+    <p>Guide complet de toutes les fonctionnalités</p>
+  </div>
+</header>
+
+<script>
+function adjustHeaderSpacing(){
+  var h = document.querySelector('header').offsetHeight;
+  document.body.style.paddingTop = h + 'px';
+}
+var bannerImg = document.getElementById('bannerImg');
+if (bannerImg.complete) adjustHeaderSpacing();
+bannerImg.addEventListener('load', adjustHeaderSpacing);
+window.addEventListener('resize', adjustHeaderSpacing);
+function adjustNavSticky(){
+  var h = document.querySelector('header').offsetHeight;
+  document.querySelector('nav').style.top = (h + 20) + 'px';
+}
+window.addEventListener('resize', adjustNavSticky);
+bannerImg.addEventListener('load', adjustNavSticky);
+if (bannerImg.complete) adjustNavSticky();
+</script>
+
+<div class="layout">
+  <nav>
+    <div class="grp">Démarrage</div>
+    <a href="#install">Installation &amp; activation</a>
+    <a href="#settings">Réglages (langue, devise)</a>
+
+    <div class="grp">Dépenses</div>
+    <a href="#expenses">Ajouter une dépense</a>
+    <a href="#weight">Produits vendus au poids</a>
+    <a href="#scan-purchase">Session de scan (ticket de caisse)</a>
+
+    <div class="grp">Shopping</div>
+    <a href="#shopping">Liste de courses</a>
+    <a href="#pos">Mode caisse enregistreuse</a>
+    <a href="#email-list">Envoyer la liste par email</a>
+
+    <div class="grp">Inventaire</div>
+    <a href="#inventory">Gérer l'inventaire</a>
+    <a href="#categories">Catégories illimitées</a>
+    <a href="#barcode">Codes-barres &amp; produits au poids</a>
+    <a href="#images">Photos des produits</a>
+    <a href="#classify">Classer essentiel / luxe</a>
+
+    <div class="grp">Famille</div>
+    <a href="#family">Comptes &amp; budgets membres</a>
+    <a href="#login">Connexion &amp; accès enfants</a>
+
+    <div class="grp">Salaire & Revenus</div>
+    <a href="#salary-income">Sources de revenus récurrentes</a>
+    <a href="#one-time-income">Revenus ponctuels</a>
+    <a href="#comparison">Comparaison mensuelle revenus/dépenses</a>
+
+    <div class="grp">Événements & Projets</div>
+    <a href="#events">Créer un événement</a>
+    <a href="#vendors">Prestataires &amp; tarification</a>
+    <a href="#tasks">Tâches &amp; contacts</a>
+
+    <div class="grp">Contacts</div>
+    <a href="#contacts">Carnet de contacts</a>
+    <a href="#contact-photo">Photo &amp; recadrage</a>
+
+    <div class="grp">Recettes</div>
+    <a href="#recipes">Recettes &amp; suggestions</a>
+
+    <div class="grp">Autres</div>
+    <a href="#budgets">Budgets</a>
+    <a href="#prices">Comparer les prix entre magasins</a>
+    <a href="#export">Import / Export Excel</a>
+    <a href="#multidevice">Synchroniser sur plusieurs PC</a>
+  </nav>
+
+  <main>
+
+    <section id="install">
+      <h2>🔑 Installation et activation</h2>
+      <p>Télécharge l'installeur depuis la page d'accueil du site, lance-le, puis ouvre Masroofi.</p>
+      <p>Au premier lancement, un formulaire d'inscription apparaît (Nom + Email). Tu peux :</p>
+      <ul>
+        <li>Laisser le champ <b>License Key</b> vide → un <b>essai gratuit de 30 jours</b> démarre automatiquement</li>
+        <li>Coller une clé déjà achetée → activation immédiate</li>
+      </ul>
+      <p>Pour activer ou changer de clé plus tard : menu <b>Help → Activate License</b>.</p>
+      <div class="tip">💡 Le compte est lié à la machine (CPU/disque) — réinstaller l'app ne réinitialise pas l'essai.</div>
+    </section>
+
+    <section id="settings">
+      <h2>⚙️ Réglages</h2>
+      <p>Bouton <code>⚙️ Settings</code> en bas de l'écran (ou menu <b>Tools → Settings</b>) :</p>
+      <ul>
+        <li><b>Langue</b> : Arabe / Anglais / Français — l'app redémarre pour appliquer</li>
+        <li><b>Devise</b> : 16 devises disponibles, appliquée partout (montants, totaux, rapports)</li>
+        <li><b>Convertisseur de devises</b> intégré — taux mis à jour en temps réel via une API gratuite</li>
+        <li><b>Chemin de la base de données</b> — pointe vers un dossier OneDrive/Google Drive pour utiliser les mêmes données sur plusieurs PC</li>
+        <li><b>Alertes au démarrage</b> — active/désactive l'alerte stock bas et l'avertissement budget</li>
+      </ul>
+    </section>
+
+    <section id="expenses">
+      <h2>💸 Ajouter une dépense</h2>
+      <p>Onglet <b>Expenses</b> → remplis le formulaire à gauche : code (ou scan), description, montant, catégorie, magasin, date, devise.</p>
+      <p>Tu peux aussi assigner la dépense à un <b>membre de la famille</b> via l'onglet Family.</p>
+    </section>
+
+    <section id="weight">
+      <h2>⚖️ Produits vendus au poids (tomates, fromage…)</h2>
+      <p>Pour les produits dont le prix dépend du poids :</p>
+      <ol>
+        <li>Dans <b>Inventory</b>, configure une fois : "Sold by" = kg/litre, et le prix au kilo</li>
+        <li>Dans <b>Expenses</b>, entre le <b>montant total payé</b> et le <b>poids indiqué sur le ticket</b></li>
+        <li>L'app calcule automatiquement le prix au kilo et le stocke pour comparer dans le temps</li>
+      </ol>
+      <div class="tip">💡 Dans la liste de courses, indique le poids que tu prévois d'acheter pour obtenir une estimation du coût avant d'aller au magasin.</div>
+    </section>
+
+    <section id="scan-purchase">
+      <h2>🧾 Session de scan — "ticket de caisse"</h2>
+      <p>Bouton <b>🛒 Scan Purchase Session</b> (Expenses) : choisis le magasin une fois, puis scanne tous tes produits sans interruption. Double-clique sur une ligne pour corriger nom/prix/poids/quantité avant de confirmer.</p>
+    </section>
+
+    <section id="shopping">
+      <h2>🛍️ Liste de courses</h2>
+      <p>Onglet <b>Shopping</b> : ajoute des articles manuellement, depuis l'inventaire, ou par scan. Code couleur : 🟢 essentiel, 🔴 luxe, blanc = normal — pour repérer rapidement où économiser.</p>
+    </section>
+
+    <section id="pos">
+      <h2>📷 Mode caisse enregistreuse (scan avec le téléphone)</h2>
+      <p>Utilise une app de scan sur ton téléphone (type "BT Scanner") connectée en Bluetooth à ton PC.</p>
+      <ol>
+        <li>Clique sur l'onglet Shopping (ou Inventory/Expenses) → une fenêtre scanner flottante s'ouvre automatiquement, toujours au premier plan</li>
+        <li>Scanne un produit → ajouté instantanément à la liste, quantité +1 si déjà présent</li>
+        <li>Si le produit est inconnu, l'app le cherche automatiquement en ligne (Open Food Facts, UPC databases, Open Library pour les ISBN…)</li>
+      </ol>
+      <div class="warn">⚠️ La fenêtre scanner s'adapte à l'onglet actif : Shopping → liste de courses, Inventory → fiche produit, Expenses → formulaire dépense. Jamais les deux à la fois.</div>
+    </section>
+
+    <section id="email-list">
+      <h2>📧 Envoyer la liste de courses</h2>
+      <p>Bouton <b>Email List</b> : envoie une page HTML interactive avec vraies cases à cocher, à ouvrir sur ton téléphone — coche au fur et à mesure dans le magasin. Chaque article affiche aussi son code-barres pour vérifier prix/disponibilité aux bornes en magasin.</p>
+      <p>Bouton <b>PDF</b> génère une version imprimable avec cases ☐ à cocher à la main.</p>
+      <p>Tu peux choisir <b>plusieurs destinataires</b> en même temps depuis ton carnet de Contacts, plus des adresses tapées manuellement si besoin.</p>
+    </section>
+
+    <section id="inventory">
+      <h2>📦 Gérer l'inventaire</h2>
+      <p>Formulaire d'ajout à gauche, liste au centre (Code + Nom), fiche détaillée à droite (photo, marque, catégorie, stock, prix). Clique une ligne pour l'afficher en grand.</p>
+      <p>Boutons disponibles : Edit Item, Delete Selected (admin), Quick Edit Price, Adjust Stock, Stock Movements, Low Stock Alert, Add to Shopping, From Expenses (récupère les achats non encore en inventaire), Import/Export Excel, PDF Catalog (avec codes-barres).</p>
+    </section>
+
+    <section id="categories">
+      <h2>🏷️ Catégories à profondeur illimitée</h2>
+      <p>Plus de limite à 3 niveaux — chaque catégorie peut avoir autant de sous-niveaux que nécessaire.</p>
+      <p>Gestion : menu <b>Tools → Manage Categories → Product Categories</b> — arbre complet avec Ajouter/Supprimer, import/export Excel par chemin complet (ex: <code>Alimentation &gt; Épicerie &gt; Pâtes</code>).</p>
+    </section>
+
+    <section id="barcode">
+      <h2>📊 Codes-barres dynamiques (produits pesés en magasin)</h2>
+      <p>Certains codes-barres encodent le prix directement (produits pesés à la balance du magasin). Masroofi les décode et utilise un <b>identifiant stable</b> (indépendant du prix scanné) pour toujours retrouver le bon produit, peu importe la variation de prix d'un achat à l'autre.</p>
+    </section>
+
+    <section id="images">
+      <h2>🖼️ Photos des produits</h2>
+      <p>Dans la fiche détail d'un produit : boutons <b>Add Picture</b> / <b>Delete Picture</b>. Survole l'image pour un aperçu agrandi.</p>
+    </section>
+
+    <section id="classify">
+      <h2>🟢🟡🔴 Classer essentiel / normal / luxe</h2>
+      <p>Bouton <b>🏷️ Classify</b> : classe tes produits en masse par catégorie, pour repérer facilement où réduire les dépenses dans la liste de courses.</p>
+    </section>
+
+    <section id="family">
+      <h2>👨‍👩‍👧 Comptes &amp; budgets des membres</h2>
+      <p>Onglet <b>Family</b> : ajoute chaque membre avec un budget mensuel. Les budgets familiaux s'intègrent automatiquement dans le <b>Budget Summary</b> et les alertes salaire.</p>
+      <p>Assigner une dépense à un membre : sélectionne-la dans Expenses, puis dans Family choisis le membre → <b>✔ Assign</b>.</p>
+    </section>
+
+    <section id="login">
+      <h2>🔐 Connexion &amp; accès limité enfants</h2>
+      <p>Écran de connexion au démarrage (nom d'utilisateur + mot de passe). 3 rôles :</p>
+      <ul>
+        <li>👑 <b>Admin</b> — accès complet</li>
+        <li>👤 <b>Parent</b> — tout sauf gestion des membres</li>
+        <li>👦 <b>Child</b> — Shopping + consultation de l'inventaire (ajout à la liste uniquement) + tableau de bord de son propre budget (restant à dépenser, dépenses récentes)</li>
+      </ul>
+      <p>Configurer le mot de passe d'un membre : Family → double-clic sur le membre → Edit.</p>
+    </section>
+
+    <section id="salary-income">
+      <h2>💼 Salaire & Revenus — sources récurrentes</h2>
+      <p>Onglet protégé par mot de passe, fusionné en 3 sous-onglets.</p>
+      <p><b>Sources de revenus récurrentes</b> : ajoute autant de sources que nécessaire (Salaire, Freelance, Loyer perçu...), chacune avec son propre montant, sa devise, et son jour de paiement (1 à 28). Chaque source est créditée <b>automatiquement</b> et indépendamment des autres.</p>
+      <ul>
+        <li>⏸ <b>Pause/Reprendre</b> une source sans la supprimer</li>
+        <li>🗑 Supprimer une source</li>
+        <li><b>Historique</b> de tous les versements passés, par source</li>
+        <li><b>Graphique</b> d'évolution mensuelle (12 derniers mois)</li>
+      </ul>
+      <div class="tip">💡 Au premier lancement après mise à jour, ton ancien salaire unique est automatiquement converti en une source "Salary".</div>
+    </section>
+
+    <section id="one-time-income">
+      <h2>💵 Revenus ponctuels</h2>
+      <p>Pour les rentrées d'argent non récurrentes (vente d'objet, cadeau, remboursement...). Formulaire simple : description, montant, catégorie/source. Un <b>camembert</b> affiche la répartition par source.</p>
+    </section>
+
+    <section id="comparison">
+      <h2>📊 Comparaison mensuelle revenus / dépenses</h2>
+      <p>3ème sous-onglet de Salaire & Revenus. Affiche, sur les 12 derniers mois :</p>
+      <ul>
+        <li>Un graphique barres (revenus en vert, dépenses en rouge) + ligne du net</li>
+        <li>Un tableau détaillé avec le <b>% d'évolution du net vs le mois précédent</b> (🟢 amélioration, 🔴 dégradation)</li>
+      </ul>
+    </section>
+
+    <section id="events">
+      <h2>🎉 Événements & Projets — créer un événement</h2>
+      <p>Pour tout ce qui sort du quotidien : mariage, anniversaire, voyage, séjour médical, rénovation...</p>
+      <p>À la création, renseigne le nom, le type, la date, et un <b>budget total + devise</b>. Deux liaisons automatiques :</p>
+      <ul>
+        <li>Si le budget est &gt; 0 → une ligne <b>one-time</b> est créée automatiquement dans l'onglet Budgets, dans la bonne devise</li>
+        <li>Si tu coches "Besoin d'un prêt" → une entrée est créée dans la table des Prêts</li>
+      </ul>
+      <div class="warn">⚠️ Supprimer un événement supprime aussi son budget, son prêt lié, et ses tâches — pense à vérifier avant de confirmer.</div>
+    </section>
+
+    <section id="vendors">
+      <h2>🏨 Prestataires & tarification adaptée</h2>
+      <p>Pour chaque événement, ajoute des prestataires avec leurs coordonnées (téléphone, email, site web, pays) et leur prix. Le formulaire de prix <b>s'adapte automatiquement</b> selon la catégorie choisie :</p>
+      <ul>
+        <li>🏨 Hôtel / 💉 Clinique / 🏥 Hôpital → option pension (Room only / B&amp;B / Half board / Full board) + prix/nuit</li>
+        <li>🍽 Restaurant → à la carte ou buffet + prix/invité</li>
+        <li>🎪 Salle de fête → prix/chaise ou forfait</li>
+        <li>🛫 Compagnie aérienne → classe (Economy/Business/First) + prix/billet</li>
+        <li>📷 Photographe → par session ou par photo</li>
+      </ul>
+      <p>Un bouton <b>"= Calculer"</b> remplit automatiquement le prix total (quantité × prix unitaire) — modifiable manuellement si besoin. Chaque prestataire peut être facturé dans <b>sa propre devise</b> (utile pour un mariage à l'étranger).</p>
+    </section>
+
+    <section id="tasks">
+      <h2>📋 Tâches &amp; attribution aux contacts</h2>
+      <p><b>Double-clique sur un événement</b> dans la liste pour ouvrir sa fenêtre de tâches.</p>
+      <ul>
+        <li>Ajoute une tâche, attribue-la à un contact, fixe une échéance</li>
+        <li>Clique sur la case ☐ pour marquer une tâche comme terminée (☑)</li>
+        <li>Double-clique sur une tâche pour la modifier (changer le nom, réattribuer à quelqu'un d'autre, changer le statut)</li>
+        <li>Bouton <b>📧 Send Tasks by Email</b> : envoie un email à chaque personne assignée, contenant <b>uniquement ses propres tâches</b></li>
+      </ul>
+    </section>
+
+    <section id="contacts">
+      <h2>👤 Carnet de contacts</h2>
+      <p>Onglet dédié pour gérer les personnes que tu assignes aux tâches d'événements (ou à qui envoyer la liste de courses). Prénom, nom, email, et autant de <b>numéros de téléphone</b> que nécessaire par contact :</p>
+      <ul>
+        <li>Choisis le <b>pays</b> → l'indicatif téléphonique se remplit automatiquement (modifiable)</li>
+        <li>Type de numéro : Mobile / Home / Work / WhatsApp / Other</li>
+      </ul>
+      <p>Dans <b>Shopping → Email List</b>, tu peux désormais sélectionner plusieurs destinataires directement depuis ce carnet de contacts (en plus d'adresses tapées manuellement).</p>
+    </section>
+
+    <section id="contact-photo">
+      <h2>✂️ Photo de contact &amp; recadrage</h2>
+      <p>Clique "Add Picture" sur un contact pour ouvrir l'outil de recadrage interactif :</p>
+      <ul>
+        <li>Un carré de sélection que tu peux <b>glisser</b> pour le positionner où tu veux sur la photo</li>
+        <li>Un curseur pour <b>agrandir/rétrécir</b> la zone sélectionnée</li>
+        <li>"✅ Crop & Save" applique exactement la zone choisie</li>
+      </ul>
+    </section>
+
+    <section id="recipes">
+      <h2>🍽️ Recettes</h2>
+      <p>Crée une recette en listant les ingrédients par <b>nom générique</b> (ex: "Spaghetti"), peu importe la marque en stock — la recherche est <b>tolérante aux fautes de frappe</b>.</p>
+      <ul>
+        <li><b>Cook This!</b> sur une recette → vérifie le stock, ajoute automatiquement ce qui manque à la liste de courses</li>
+        <li><b>Suggest Recipes</b> → analyse ton inventaire et propose les recettes réalisables, triées par % d'ingrédients déjà disponibles</li>
+      </ul>
+    </section>
+
+    <section id="budgets">
+      <h2>📅 Budgets</h2>
+      <p>Budgets par catégorie avec récurrence et réinitialisation automatique. Le <b>Budget Summary</b> combine budgets catégorie + budgets famille pour une vue d'ensemble.</p>
+      <p>Chaque budget peut être dans <b>sa propre devise</b> (utile pour les budgets liés à un événement à l'étranger).
+      ⚠️ Le total global combiné n'effectue pas encore de conversion entre devises différentes.</p>
+    </section>
+
+    <section id="prices">
+      <h2>💰 Comparer les prix entre magasins</h2>
+      <p>Chaque scan/achat avec un magasin sélectionné alimente un historique de prix. <b>Price Comparison</b> affiche, pour chaque produit, le magasin le moins cher (🟢) et le plus cher (🔴), avec l'économie potentielle.</p>
+    </section>
+
+    <section id="export">
+      <h2>📤 Import / Export Excel</h2>
+      <p>Disponible pour Inventory, Expenses, Income, Shopping List et Catégories. Pratique pour sauvegarder, modifier en masse dans Excel, ou migrer les données.</p>
+    </section>
+
+    <section id="multidevice">
+      <h2>☁️ Utiliser Masroofi sur plusieurs ordinateurs</h2>
+      <p>Settings → chemin de la base de données → choisis un dossier synchronisé (OneDrive/Google Drive). Installe Masroofi sur l'autre PC, pointe vers le même dossier synchronisé → mêmes données partout.</p>
+    </section>
+
+    <div style="text-align:center;margin-top:20px">
+      <a class="pdfbtn" href="/manual.pdf">📥 Télécharger ce manuel en PDF</a>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

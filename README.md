@@ -60,3 +60,19 @@ Même algorithme HMAC que `_validate_key()` dans Masroofi.py — testé et compa
 - Désactive "Enable test purchases"
 - Garde `GUMROAD_ACCESS_TOKEN` secret (jamais dans Git)
 - Le SECRET dans `licensing.py` doit toujours être identique à `_LIC_SECRET` dans Masroofi.py
+
+## Bons plans / Bonnes occasions
+
+- Page publique : `/deals`
+- Admin (ajouter/supprimer manuellement) : `/admin/deals`
+  - Mot de passe défini par la variable d'env `ADMIN_PASSWORD` (change la valeur par défaut !)
+- Import automatique depuis Masroofi (bouton "Send to Website" dans Price Comparison) :
+  - Variable d'env `SITE_API_KEY` côté site
+  - Doit être identique à `_SITE_API_KEY` dans Masroofi.py
+
+Variables à définir avant de lancer en production :
+```
+set ADMIN_PASSWORD=ton_mot_de_passe_admin
+set SITE_API_KEY=une_cle_secrete_partagee_avec_masroofi
+set FLASK_SECRET=une_cle_aleatoire_longue
+```

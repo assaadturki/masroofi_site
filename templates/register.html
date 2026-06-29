@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
+<head>
+<meta charset="UTF-8">
+<title>Masroofi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f7fb;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px}
+  .card{background:#fff;border-radius:14px;padding:32px;width:100%;max-width:420px;box-shadow:0 4px 18px rgba(0,0,0,.1)}
+  h2{color:#05225f;margin-top:0}
+  p.sub{color:#6b7280;font-size:.88rem;margin-top:-8px}
+  label{font-size:.85rem;font-weight:600;display:block;margin-top:12px}
+  input,select{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;margin-top:4px;box-sizing:border-box}
+  button{width:100%;padding:11px;margin-top:18px;border:none;border-radius:8px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer}
+  .error{color:#dc2626;font-size:.85rem;margin-top:10px}
+  .plan-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;margin:14px 0;font-size:.9rem;color:#1e3a8a}
+  .lang-switch{text-align:center;margin-bottom:10px}
+  .lang-switch a{margin:0 4px;color:#2563eb;text-decoration:none;font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="lang-switch">
+    <a href="{{ url_for('set_lang', lang='fr') }}">FR</a> ·
+    <a href="{{ url_for('set_lang', lang='en') }}">EN</a> ·
+    <a href="{{ url_for('set_lang', lang='ar') }}">AR</a>
+  </div>
+  <h2>{{ t('reg_title') }}</h2>
+  <p class="sub">{{ t('reg_sub') }}</p>
+  <div class="plan-box">📦 {{ t('reg_plan_label') }} <b>Masroofi — {{ plan.label }}</b> ({{ plan.price_display }})</div>
+  <form method="POST">
+    <input type="hidden" name="plan" value="{{ plan_id }}">
+    <label>{{ t('full_name') }}</label>
+    <input type="text" name="name" required>
+    <label>{{ t('email') }}</label>
+    <input type="email" name="email" required>
+    <label>{{ t('country') }}</label>
+    <select name="country" required>
+      <option value="">{{ t('choose_country') }}</option>
+      {% for c in countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+    </select>
+    <label>{{ t('password') }}</label>
+    <input type="password" name="password" required minlength="6">
+    <label>{{ t('confirm_password') }}</label>
+    <input type="password" name="password2" required minlength="6">
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <button type="submit">{{ t('continue_payment') }}</button>
+  </form>
+  <p style="font-size:.78rem;color:#9ca3af;margin-top:14px;text-align:center;white-space:pre-line">{{ t('reg_note') }}</p>
+  <p style="text-align:center;font-size:.85rem;margin-top:8px">
+    {{ t('already_account') }} <a href="{{ url_for('login') }}" style="color:#2563eb">{{ t('login_link') }}</a>
+  </p>
+</div>
+</body>
+</html>

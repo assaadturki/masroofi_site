@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
+<head>
+<meta charset="UTF-8">
+<title>Masroofi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f7fb;margin:0;padding:30px 16px;color:#1a1a2e}
+  .card{background:#fff;border-radius:14px;padding:28px;max-width:480px;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+  h2{color:#05225f;margin-top:0}
+  label{font-size:.85rem;font-weight:600;display:block;margin-top:12px}
+  input,textarea,select{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;margin-top:4px;box-sizing:border-box}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  button{width:100%;padding:11px;margin-top:18px;border:none;border-radius:8px;background:#16a34a;color:#fff;font-weight:700;cursor:pointer}
+  .success{background:#dcfce7;color:#166534;padding:12px;border-radius:8px;margin-bottom:14px;font-size:.9rem}
+  a{color:#2563eb}
+  .lang-switch{text-align:center;margin-bottom:10px}
+  .lang-switch a{margin:0 4px;font-size:.85rem;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="lang-switch">
+    <a href="{{ url_for('set_lang', lang='fr') }}">FR</a> ·
+    <a href="{{ url_for('set_lang', lang='en') }}">EN</a> ·
+    <a href="{{ url_for('set_lang', lang='ar') }}">AR</a>
+  </div>
+  <h2>➕ Proposer un bon plan</h2>
+  {% if success %}
+    <div class="success">✅ Merci ! Ton bon plan a été publié.</div>
+    <p><a href="{{ url_for('deals_public') }}">← Voir les bons plans</a></p>
+  {% endif %}
+  <form method="POST" enctype="multipart/form-data">
+    <label>Titre *</label>
+    <input type="text" name="title" required>
+    <label>Description</label>
+    <textarea name="description" rows="2"></textarea>
+    <div class="row">
+      <div><label>Magasin</label><input type="text" name="store"></div>
+      <div><label>Pays</label>
+        <select name="country">
+          {% for c in countries %}
+          <option value="{{ c }}" {{ 'selected' if c==default_country }}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <label>Localisation (ville / quartier)</label>
+    <input type="text" name="location">
+    <label>Lien Google Maps ou Waze (optionnel)</label>
+    <input type="url" name="maps_link">
+    <div class="row">
+      <div><label>Prix</label><input type="number" step="0.01" name="price"></div>
+      <div><label>Devise</label><input type="text" name="currency" placeholder="QAR, TND..."></div>
+    </div>
+    <label>Lien vers l'offre (optionnel)</label>
+    <input type="url" name="link">
+    <label>Photo (optionnel)</label>
+    <input type="file" name="image" accept="image/*">
+    <label>Date d'expiration (optionnel)</label>
+    <input type="date" name="expires_at">
+    <button type="submit">Publier</button>
+  </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
+<head>
+<meta charset="UTF-8">
+<title>Masroofi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f7fb;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:20px}
+  .card{background:#fff;border-radius:14px;padding:36px;width:100%;max-width:460px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.1)}
+  h2{color:#05225f}
+  p{color:#6b7280}
+  .plans{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+  a.btn{flex:1;min-width:140px;background:#2563eb;color:#fff;text-decoration:none;padding:12px;border-radius:10px;font-weight:700;font-size:.9rem}
+  a.home{display:inline-block;margin-top:18px;color:#2563eb;font-size:.85rem}
+  .lang-switch{margin-bottom:14px}
+  .lang-switch a{margin:0 4px;color:#2563eb;text-decoration:none;font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="lang-switch">
+    <a href="{{ url_for('set_lang', lang='fr') }}">FR</a> ·
+    <a href="{{ url_for('set_lang', lang='en') }}">EN</a> ·
+    <a href="{{ url_for('set_lang', lang='ar') }}">AR</a>
+  </div>
+  <div style="font-size:2.5rem">🔒</div>
+  <h2>{{ t('locked_title') }}</h2>
+  <p>{{ t('locked_desc') }}</p>
+  <div class="plans">
+    {% for id, plan in plans.items() %}
+    <a class="btn" href="{{ url_for('register', plan=id) }}">{{ plan.label }} — {{ plan.price_display }}</a>
+    {% endfor %}
+  </div>
+  <a class="home" href="/">{{ t('back_home') }}</a>
+  <p style="margin-top:10px;font-size:.85rem"><a href="{{ url_for('login') }}" style="color:#2563eb">{{ t('already_have_account') }}</a></p>
+</div>
+</body>
+</html>

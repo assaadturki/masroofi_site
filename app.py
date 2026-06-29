@@ -32,11 +32,39 @@ import json
 from email.mime.text import MIMEText
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, jsonify
+from flask import Flask, render_template, request, redirect, jsonify, session, url_for
+from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 
-from licensing import generate_key
+from licensing import generate_key, validate_key
+from i18n import get_translator, is_rtl, DEFAULT_LANG
+
+COUNTRIES = sorted(["Qatar", "Tunisia", "Saudi Arabia", "UAE", "Kuwait", "Bahrain", "Oman",
+             "Jordan", "Egypt", "Morocco", "Algeria", "Libya", "Lebanon", "Syria",
+             "Iraq", "Yemen", "Turkey", "France", "United Kingdom", "Germany",
+             "Italy", "Spain", "USA", "Canada", "India", "Pakistan"]) + ["Other"]
+REPORT_THRESHOLD = 3  # auto-hide a deal after this many reports
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("FLASK_SECRET", "change-this-secret-too")
+
+
+def get_lang():
+    return session.get("lang", DEFAULT_LANG)
+
+
+@app.context_processor
+def inject_i18n():
+    lang = get_lang()
+    return {"t": get_translator(lang), "lang": lang, "is_rtl": is_rtl(lang)}
+
+
+@app.route("/set-lang/<lang>")
+def set_lang(lang):
+    if lang in ("ar", "en", "fr"):
+        session["lang"] = lang
+    return redirect(request.referrer or url_for("index"))
+
 
 # ── Configuration ──────────────────────────────────────────────────────
 GUMROAD_ACCESS_TOKEN = os.environ.get("GUMROAD_ACCESS_TOKEN", "")
@@ -48,6 +76,11 @@ SMTP_PASS = os.environ.get("SMTP_PASS", "")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", SMTP_USER or "noreply@masroofi.local")
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "orders.db")
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
+SITE_API_KEY = os.environ.get("SITE_API_KEY", "changeme-api-key")
+DEALS_IMG_DIR = os.path.join(os.path.dirname(__file__), "static", "deals")
+os.makedirs(DEALS_IMG_DIR, exist_ok=True)
 
 # ── Products — map each Gumroad product permalink to a license duration.
 # Permalink = the part after gumroad.com/l/ in your product URL.
@@ -77,6 +110,69 @@ def init_db():
             customer_email TEXT,
             plan TEXT,
             license_key TEXT,
+            created_at TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS activations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            license_key TEXT NOT NULL,
+            machine_id TEXT NOT NULL,
+            activated_at TEXT,
+            UNIQUE(license_key, machine_id)
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS deals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            store TEXT DEFAULT '',
+            location TEXT DEFAULT '',
+            maps_link TEXT DEFAULT '',
+            price REAL DEFAULT NULL,
+            currency TEXT DEFAULT '',
+            link TEXT DEFAULT '',
+            image_filename TEXT DEFAULT '',
+            expires_at TEXT DEFAULT '',
+            source TEXT DEFAULT 'manual',
+            active INTEGER DEFAULT 1,
+            created_at TEXT
+        )
+    """)
+    for col_sql in [
+        "ALTER TABLE deals ADD COLUMN maps_link TEXT DEFAULT ''",
+        "ALTER TABLE deals ADD COLUMN country TEXT DEFAULT ''",
+        "ALTER TABLE deals ADD COLUMN submitter_email TEXT DEFAULT ''",
+        "ALTER TABLE deals ADD COLUMN reports_count INTEGER DEFAULT 0",
+    ]:
+        try: conn.execute(col_sql)
+        except Exception: pass
+
+    # Buyers — registered at purchase time (name, email, country, NO key yet).
+    # Marked verified=1 by the Gumroad webhook once payment is confirmed.
+    # This record is what unlocks access to "Bons Plans" — no license key
+    # needs to be pasted anywhere on the website.
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS buyers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            country TEXT NOT NULL,
+            plan TEXT DEFAULT '',
+            password_hash TEXT DEFAULT '',
+            verified INTEGER DEFAULT 0,
+            created_at TEXT
+        )
+    """)
+    try: conn.execute("ALTER TABLE buyers ADD COLUMN password_hash TEXT DEFAULT ''")
+    except Exception: pass
+
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS deal_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            deal_id INTEGER NOT NULL,
+            reporter_ip TEXT DEFAULT '',
             created_at TEXT
         )
     """)
@@ -152,6 +248,16 @@ def index():
     return render_template("index.html", plans=PLANS)
 
 
+@app.route("/manual")
+def manual():
+    return render_template("manual.html")
+
+
+@app.route("/manual.pdf")
+def manual_pdf():
+    return app.send_static_file("manual.pdf")
+
+
 @app.route("/success")
 def success():
     """Optional: set this URL (https://yourdomain/success) as the
@@ -174,6 +280,371 @@ def check_order():
         name, email, plan, key = order
         return jsonify({"ready": True, "license_key": key, "name": name})
     return jsonify({"ready": False})
+
+
+# ── Current app version (update this on every release) ───────────────────
+CURRENT_VERSION = "4.2"
+DOWNLOAD_URL = "https://yourdomain.com/"  # the landing page with the download button
+
+
+@app.route("/api/version")
+def api_version():
+    """Polled by Masroofi on startup to check for updates."""
+    return jsonify({
+        "latest_version": CURRENT_VERSION,
+        "download_url": DOWNLOAD_URL,
+    })
+
+
+def _parse_license_payload(full_key):
+    """Decode name/expiry/seats from a full license key WITHOUT re-verifying
+    the HMAC signature here (Masroofi.py already verified it before calling
+    /activate). Returns (name, expiry, seats) or None."""
+    try:
+        payload_b64, _sig = full_key.split(".")
+        import base64 as _b64
+        payload = _b64.urlsafe_b64decode(payload_b64 + "==").decode()
+        parts = payload.split("|")
+        name = parts[0]
+        expiry = parts[1] if len(parts) > 1 else ""
+        seats = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 1
+        return name, expiry, seats
+    except Exception:
+        return None
+
+
+@app.route("/activate", methods=["POST"])
+def activate():
+    """Called by Masroofi.py when a license key is entered.
+    Enforces the seat count embedded in the key (1, 5, 10 computers...).
+    If this endpoint is unreachable (no internet), Masroofi.py falls back
+    to its own offline HMAC validation without seat enforcement."""
+    data = request.get_json(silent=True) or request.form
+    full_key = (data.get("license_key") or "").strip()
+    machine_id = (data.get("machine_id") or "").strip()
+    if not full_key or not machine_id:
+        return jsonify({"ok": False, "error": "missing license_key or machine_id"}), 400
+
+    parsed = _parse_license_payload(full_key)
+    if not parsed:
+        return jsonify({"ok": False, "error": "invalid key format"}), 400
+    name, expiry, seats = parsed
+
+    conn = sqlite3.connect(DB_PATH)
+    already = conn.execute(
+        "SELECT 1 FROM activations WHERE license_key=? AND machine_id=?",
+        (full_key, machine_id)).fetchone()
+    if already:
+        conn.close()
+        return jsonify({"ok": True, "seats": seats, "already_activated": True})
+
+    used = conn.execute(
+        "SELECT COUNT(*) FROM activations WHERE license_key=?", (full_key,)).fetchone()[0]
+    if used >= seats:
+        conn.close()
+        return jsonify({"ok": False, "error": f"Seat limit reached ({used}/{seats} computers already activated)"}), 403
+
+    conn.execute(
+        "INSERT INTO activations (license_key, machine_id, activated_at) VALUES (?,?,?)",
+        (full_key, machine_id, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True, "seats": seats, "used": used + 1})
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    """Shown when someone clicks a 'Buy' button on the homepage — collects
+    name/email/country BEFORE sending them to Gumroad (no license key yet,
+    they haven't paid). The Gumroad webhook later marks this email as
+    'verified' once payment is confirmed."""
+    plan_id = request.args.get("plan", "") or request.form.get("plan", "")
+    plan = PLANS.get(plan_id)
+    error = None
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        country = request.form.get("country", "").strip()
+        password = request.form.get("password", "")
+        password2 = request.form.get("password2", "")
+        if not (name and email and country and password):
+            error = "Tous les champs sont obligatoires."
+        elif password != password2:
+            error = "Les mots de passe ne correspondent pas."
+        elif len(password) < 6:
+            error = "Le mot de passe doit faire au moins 6 caractères."
+        elif not plan:
+            error = "Offre invalide."
+        else:
+            conn = sqlite3.connect(DB_PATH)
+            existing = conn.execute("SELECT id FROM buyers WHERE email=?", (email,)).fetchone()
+            if existing:
+                error = "Un compte existe déjà avec cet email — connecte-toi plutôt."
+                conn.close()
+            else:
+                conn.execute("""INSERT INTO buyers (name,email,country,plan,password_hash,verified,created_at)
+                                VALUES (?,?,?,?,?,0,?)""",
+                            (name, email, country, plan_id,
+                             generate_password_hash(password), datetime.now().isoformat()))
+                conn.commit(); conn.close()
+                session["buyer_email"] = email
+                session["buyer_country"] = country
+                return redirect(plan["gumroad_url"])
+
+    if not plan:
+        return redirect(url_for("index"))
+    return render_template("register.html", error=error, countries=COUNTRIES, plan=plan, plan_id=plan_id)
+
+
+@app.route("/claim-account", methods=["GET", "POST"])
+def claim_account():
+    """For buyers who purchased directly on Gumroad without registering on
+    our site first — lets them set a password using the email they paid
+    with, so they can log in and access Bons Plans."""
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        country = request.form.get("country", "").strip()
+        password = request.form.get("password", "")
+        password2 = request.form.get("password2", "")
+        conn = sqlite3.connect(DB_PATH)
+        row = conn.execute("SELECT verified, password_hash FROM buyers WHERE email=?", (email,)).fetchone()
+        if not row or not row[0]:
+            error = "Aucun achat vérifié trouvé pour cet email."
+        elif row[1]:
+            error = "Un mot de passe existe déjà pour ce compte — connecte-toi."
+        elif password != password2:
+            error = "Les mots de passe ne correspondent pas."
+        elif len(password) < 6:
+            error = "Le mot de passe doit faire au moins 6 caractères."
+        else:
+            conn.execute("UPDATE buyers SET password_hash=?, country=? WHERE email=?",
+                         (generate_password_hash(password), country or "", email))
+            conn.commit(); conn.close()
+            session["buyer_email"] = email
+            session["buyer_country"] = country
+            return redirect(url_for("deals_public"))
+        conn.close()
+    return render_template("claim_account.html", error=error, countries=COUNTRIES)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = None
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        conn = sqlite3.connect(DB_PATH)
+        row = conn.execute("SELECT country, password_hash, verified FROM buyers WHERE email=?",
+                            (email,)).fetchone()
+        conn.close()
+        if not row or not row[1] or not check_password_hash(row[1], password):
+            error = "Email ou mot de passe incorrect."
+        else:
+            session["buyer_email"] = email
+            session["buyer_country"] = row[0]
+            return redirect(url_for("deals_public"))
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.pop("buyer_email", None)
+    session.pop("buyer_country", None)
+    return redirect(url_for("index"))
+
+
+def _current_buyer():
+    """Returns (email, country, verified) for the visitor, or (None, None, False)."""
+    email = session.get("buyer_email")
+    if not email:
+        return None, None, False
+    conn = sqlite3.connect(DB_PATH)
+    row = conn.execute("SELECT country, verified FROM buyers WHERE email=?", (email,)).fetchone()
+    conn.close()
+    if not row:
+        return None, None, False
+    return email, row[0], bool(row[1])
+
+
+@app.route("/deals")
+def deals_public():
+    email, buyer_country, verified = _current_buyer()
+    if not verified:
+        return render_template("deals_locked.html", plans=PLANS)
+
+    selected_country = request.args.get("country", buyer_country or "")
+
+    conn = sqlite3.connect(DB_PATH)
+    today = datetime.now().strftime("%Y-%m-%d")
+    query = """
+        SELECT title, description, store, location, maps_link, price, currency, link,
+               image_filename, expires_at, source, id, country
+        FROM deals
+        WHERE active=1 AND (expires_at='' OR expires_at >= ?)"""
+    params = [today]
+    if selected_country and selected_country != "all":
+        query += " AND (country=? OR country='')"
+        params.append(selected_country)
+    query += " ORDER BY id DESC"
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+
+    enriched = []
+    for title, description, store, location, maps_link, price, currency, link, image, expires_at, source, deal_id, country in rows:
+        final_maps_link = maps_link or (
+            "https://www.google.com/maps/search/?api=1&query=" + urllib.parse.quote(location)
+            if location else "")
+        enriched.append((title, description, store, location, final_maps_link, price,
+                          currency, link, image, expires_at, source, deal_id, country))
+    return render_template("deals.html", deals=enriched, countries=COUNTRIES,
+                            selected_country=selected_country or "all",
+                            buyer_country=buyer_country, is_submitter=True)
+
+
+@app.route("/submit-deal", methods=["GET", "POST"])
+def submit_deal():
+    email, buyer_country, verified = _current_buyer()
+    if not verified:
+        return render_template("deals_locked.html", plans=PLANS)
+
+    success = False
+    if request.method == "POST":
+        title = request.form.get("title", "").strip()
+        if title:
+            image_filename = ""
+            file = request.files.get("image")
+            if file and file.filename:
+                image_filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
+                file.save(os.path.join(DEALS_IMG_DIR, image_filename))
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("""INSERT INTO deals
+                (title, description, store, location, maps_link, price, currency, link,
+                 image_filename, expires_at, country, source, submitter_email, created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (title, request.form.get("description", "").strip(),
+                 request.form.get("store", "").strip(),
+                 request.form.get("location", "").strip(),
+                 request.form.get("maps_link", "").strip(),
+                 request.form.get("price") or None,
+                 request.form.get("currency", "").strip(),
+                 request.form.get("link", "").strip(),
+                 image_filename, request.form.get("expires_at", "").strip(),
+                 request.form.get("country", "").strip() or buyer_country,
+                 "user_submitted", email, datetime.now().isoformat()))
+            conn.commit(); conn.close()
+            success = True
+
+    return render_template("submit_deal.html", success=success, countries=COUNTRIES,
+                            default_country=buyer_country)
+
+
+@app.route("/report-deal/<int:deal_id>", methods=["POST"])
+def report_deal(deal_id):
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
+    conn = sqlite3.connect(DB_PATH)
+    already = conn.execute(
+        "SELECT 1 FROM deal_reports WHERE deal_id=? AND reporter_ip=?", (deal_id, ip)).fetchone()
+    if not already:
+        conn.execute("INSERT INTO deal_reports (deal_id, reporter_ip, created_at) VALUES (?,?,?)",
+                     (deal_id, ip, datetime.now().isoformat()))
+        conn.execute("UPDATE deals SET reports_count = reports_count + 1 WHERE id=?", (deal_id,))
+        count = conn.execute("SELECT reports_count FROM deals WHERE id=?", (deal_id,)).fetchone()[0]
+        if count >= REPORT_THRESHOLD:
+            conn.execute("UPDATE deals SET active=0 WHERE id=?", (deal_id,))
+        conn.commit()
+    conn.close()
+    return redirect(url_for("deals_public"))
+
+
+@app.route("/admin/deals", methods=["GET", "POST"])
+def admin_deals():
+    if not session.get("is_admin"):
+        if request.method == "POST" and request.form.get("password"):
+            if request.form.get("password") == ADMIN_PASSWORD:
+                session["is_admin"] = True
+                return redirect(url_for("admin_deals"))
+            return render_template("admin_login.html", error="Wrong password")
+        return render_template("admin_login.html", error=None)
+
+    if request.method == "POST" and request.form.get("action") == "add":
+        title = request.form.get("title", "").strip()
+        if title:
+            image_filename = ""
+            file = request.files.get("image")
+            if file and file.filename:
+                image_filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
+                file.save(os.path.join(DEALS_IMG_DIR, image_filename))
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("""INSERT INTO deals
+                (title, description, store, location, maps_link, price, currency, link,
+                 image_filename, expires_at, source, created_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (title, request.form.get("description", "").strip(),
+                 request.form.get("store", "").strip(),
+                 request.form.get("location", "").strip(),
+                 request.form.get("maps_link", "").strip(),
+                 request.form.get("price") or None,
+                 request.form.get("currency", "").strip(),
+                 request.form.get("link", "").strip(),
+                 image_filename, request.form.get("expires_at", "").strip(),
+                 "manual", datetime.now().isoformat()))
+            conn.commit(); conn.close()
+        return redirect(url_for("admin_deals"))
+
+    if request.method == "POST" and request.form.get("action") == "delete":
+        deal_id = request.form.get("deal_id")
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("DELETE FROM deals WHERE id=?", (deal_id,))
+        conn.commit(); conn.close()
+        return redirect(url_for("admin_deals"))
+
+    if request.method == "POST" and request.form.get("action") == "reactivate":
+        deal_id = request.form.get("deal_id")
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("UPDATE deals SET active=1, reports_count=0 WHERE id=?", (deal_id,))
+        conn.commit(); conn.close()
+        return redirect(url_for("admin_deals"))
+
+    conn = sqlite3.connect(DB_PATH)
+    rows = conn.execute("""SELECT id,title,description,store,location,maps_link,price,currency,
+                                   link,image_filename,expires_at,source,active,country,reports_count
+                            FROM deals ORDER BY reports_count DESC, id DESC""").fetchall()
+    conn.close()
+    return render_template("admin_deals.html", deals=rows)
+
+
+@app.route("/admin/logout")
+def admin_logout():
+    session.pop("is_admin", None)
+    return redirect(url_for("admin_deals"))
+
+
+@app.route("/api/import-deal", methods=["POST"])
+def import_deal():
+    """Called from Masroofi's Price Comparison window ('Send to Website' button).
+    Protected by a shared secret key (SITE_API_KEY) — set the same value in
+    Masroofi.py's _SITE_API_KEY constant."""
+    data = request.get_json(silent=True) or {}
+    if data.get("api_key") != SITE_API_KEY:
+        return jsonify({"ok": False, "error": "invalid api key"}), 403
+
+    title = (data.get("title") or "").strip()
+    if not title:
+        return jsonify({"ok": False, "error": "title required"}), 400
+
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""INSERT INTO deals
+        (title, description, store, location, maps_link, price, currency, link,
+         expires_at, source, created_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+        (title, data.get("description",""), data.get("store",""),
+         data.get("location",""), data.get("maps_link",""), data.get("price"),
+         data.get("currency",""), data.get("link",""), data.get("expires_at",""),
+         "price_comparison", datetime.now().isoformat()))
+    conn.commit(); conn.close()
+    return jsonify({"ok": True})
 
 
 @app.route("/gumroad-webhook", methods=["POST"])
@@ -203,6 +674,20 @@ def gumroad_webhook():
     send_license_email(email, name, result["full_key"], plan["label"])
     print(f"[WEBHOOK] License generated for {email}: {result['full_key']}")
 
+    # Mark this email as a VERIFIED buyer — this is what unlocks "Bons Plans"
+    # access on the website. No license key needs to be entered anywhere.
+    conn = sqlite3.connect(DB_PATH)
+    existing = conn.execute("SELECT id, country FROM buyers WHERE email=?", (email,)).fetchone()
+    if existing:
+        conn.execute("UPDATE buyers SET verified=1, plan=? WHERE email=?", (permalink, email))
+    else:
+        # Purchased directly on Gumroad without going through our /register
+        # page first — still track them, country unknown for now.
+        conn.execute("""INSERT INTO buyers (name, email, country, plan, verified, created_at)
+                        VALUES (?,?,?,?,1,?)""",
+                     (name, email, "", permalink, datetime.now().isoformat()))
+    conn.commit(); conn.close()
+
     return jsonify({"received": True})
 
 
@@ -215,5 +700,7 @@ if __name__ == "__main__":
     print("  and the Ping webhook to point at /gumroad-webhook")
     print("  (use ngrok for a public HTTPS URL while testing locally)")
     print("=" * 60)
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(debug=debug_mode, host="0.0.0.0", port=port)
 

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Admin — Bons plans</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f7fb;margin:0;color:#1a1a2e}
+  .topbar{background:#05225f;color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+  .topbar a{color:#cfe0ff;text-decoration:none;font-size:.9rem}
+  .container{max-width:900px;margin:24px auto;padding:0 20px}
+  .card{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  h2{margin-top:0;color:#05225f}
+  label{font-size:.82rem;font-weight:600;display:block;margin-top:10px}
+  input,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:8px;margin-top:4px;box-sizing:border-box}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  button{margin-top:14px;padding:10px 18px;border:none;border-radius:8px;background:#16a34a;color:#fff;font-weight:700;cursor:pointer}
+  table{width:100%;border-collapse:collapse;margin-top:10px}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid #eee;font-size:.85rem}
+  .del-btn{background:#dc2626;color:#fff;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:.8rem}
+  .badge{font-size:.7rem;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:5px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <strong>🔒 Admin — Bons plans</strong>
+  <a href="/admin/logout">Déconnexion</a>
+</div>
+
+<div class="container">
+
+  <div class="card">
+    <h2>➕ Ajouter un bon plan</h2>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="add">
+      <label>Titre *</label>
+      <input type="text" name="title" required>
+      <label>Description</label>
+      <textarea name="description" rows="2"></textarea>
+      <div class="row">
+        <div><label>Magasin</label><input type="text" name="store"></div>
+        <div><label>Localisation (texte)</label><input type="text" name="location" placeholder="Ex: City Center Doha"></div>
+      </div>
+      <label>Lien Google Maps ou Waze (optionnel — sinon généré automatiquement depuis la localisation)</label>
+      <input type="url" name="maps_link" placeholder="https://maps.google.com/... ou https://waze.com/ul/...">
+      <div class="row">
+        <div><label>Prix</label><input type="number" step="0.01" name="price"></div>
+        <div><label>Devise (ex: QAR, TND)</label><input type="text" name="currency"></div>
+      </div>
+      <label>Lien (optionnel)</label>
+      <input type="url" name="link" placeholder="https://...">
+      <label>Image (optionnel)</label>
+      <input type="file" name="image" accept="image/*">
+      <label>Date d'expiration (optionnel, AAAA-MM-JJ)</label>
+      <input type="date" name="expires_at">
+      <button type="submit">Ajouter</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>📋 Bons plans existants</h2>
+    <table>
+      <tr><th>Titre</th><th>Magasin</th><th>Prix</th><th>Expire</th><th>Source</th><th></th></tr>
+      {% for id, title, description, store, location, maps_link, price, currency, link, image, expires_at, source, active in deals %}
+      <tr>
+        <td>{{ title }}</td>
+        <td>{{ store }}</td>
+        <td>{{ price }} {{ currency }}</td>
+        <td>{{ expires_at }}</td>
+        <td>{% if source == 'price_comparison' %}<span class="badge">App</span>{% else %}Manuel{% endif %}</td>
+        <td>
+          <form method="POST" style="display:inline">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="deal_id" value="{{ id }}">
+            <button type="submit" class="del-btn">Suppr.</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
+<head>
+<meta charset="UTF-8">
+<title>Masroofi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --navy:#0a3a8a; --navy-dark:#05225f; --accent:#2563eb;
+    --bg:#f5f7fb; --card:#ffffff; --text:#1a1a2e; --muted:#6b7280;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding-top:0}
+  header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,var(--navy-dark),var(--navy))}
+  header img{width:100%;display:block}
+  .container{max-width:1100px;margin:0 auto;padding:30px 20px 60px}
+  h1{color:var(--navy-dark);text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;margin-top:24px}
+  .card{background:var(--card);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07);display:flex;flex-direction:column}
+  .card img{width:100%;height:160px;object-fit:cover;background:#eee}
+  .card-body{padding:16px;flex:1;display:flex;flex-direction:column}
+  .card h3{margin:0 0 6px;font-size:1.05rem;color:var(--navy-dark)}
+  .card p{margin:0 0 8px;color:#444;font-size:.9rem;flex:1}
+  .meta{font-size:.8rem;color:var(--muted);margin-bottom:8px}
+  .price{font-weight:700;color:var(--accent);font-size:1.1rem}
+  .badge{display:inline-block;font-size:.7rem;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:6px;margin-bottom:6px}
+  a.btn{display:inline-block;margin-top:10px;background:var(--accent);color:#fff;text-decoration:none;padding:8px 14px;border-radius:8px;font-size:.85rem;font-weight:600;text-align:center}
+  .empty{text-align:center;color:var(--muted);padding:60px 0}
+  .navbar{background:#05225f;display:flex;justify-content:center;align-items:center;gap:24px;padding:10px 0;flex-wrap:wrap}
+  .navbar a{color:#cfe0ff;text-decoration:none;font-size:.9rem;font-weight:600}
+  .navbar a:hover{color:#ffffff}
+  .lang-switch{display:flex;gap:6px}
+  .lang-switch a{padding:2px 6px;border-radius:5px;font-size:.85rem}
+  .lang-switch a.active{background:#ffffff;color:#05225f !important}
+</style>
+</head>
+<body>
+
+<header>
+  <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi">
+  <nav class="navbar">
+    <a href="/">🏠 {{ t('home') }}</a>
+    <a href="/deals">🛍️ {{ t('deals') }}</a>
+    <a href="/manual">📖 {{ t('manual') }}</a>
+    <a href="/logout">🚪 {{ t('logout') }}</a>
+    <span class="lang-switch">
+      <a href="{{ url_for('set_lang', lang='fr') }}" class="{{ 'active' if lang=='fr' }}">FR</a>
+      <a href="{{ url_for('set_lang', lang='en') }}" class="{{ 'active' if lang=='en' }}">EN</a>
+      <a href="{{ url_for('set_lang', lang='ar') }}" class="{{ 'active' if lang=='ar' }}">AR</a>
+    </span>
+  </nav>
+</header>
+
+<script>
+function adjustHeaderSpacing(){
+  document.body.style.paddingTop = document.querySelector('header').offsetHeight + 'px';
+}
+window.addEventListener('load', adjustHeaderSpacing);
+window.addEventListener('resize', adjustHeaderSpacing);
+</script>
+
+<div class="container">
+  <h1>{{ t('deals_title') }}</h1>
+  <p style="text-align:center;color:var(--muted)">{{ t('deals_sub') }}</p>
+
+  <div style="display:flex;justify-content:center;gap:14px;align-items:center;margin-top:16px;flex-wrap:wrap">
+    <form method="GET" style="display:flex;align-items:center;gap:8px">
+      <label style="font-size:.85rem;color:var(--muted)">{{ t('country_filter') }}</label>
+      <select name="country" onchange="this.form.submit()" style="padding:6px 10px;border-radius:8px;border:1px solid #ccc">
+        <option value="all" {{ 'selected' if selected_country=='all' }}>{{ t('all_countries') }}</option>
+        {% for c in countries %}
+        <option value="{{ c }}" {{ 'selected' if selected_country==c }}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </form>
+    <a href="{{ url_for('submit_deal') }}"
+       style="background:var(--accent);color:#fff;padding:8px 16px;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem">
+      {{ t('propose_deal') }}
+    </a>
+  </div>
+
+  {% if deals %}
+  <div class="grid">
+    {% for title, description, store, location, maps_link, price, currency, link, image, expires_at, source, deal_id, country in deals %}
+    <div class="card">
+      {% if image %}
+        <img src="{{ url_for('static', filename='deals/' + image) }}" alt="{{ title }}">
+      {% endif %}
+      <div class="card-body">
+        {% if source == 'price_comparison' %}<span class="badge">{{ t('from_app') }}</span>
+        {% elif source == 'user_submitted' %}<span class="badge" style="background:#dbeafe;color:#1e40af">👤</span>{% endif %}
+        <h3>{{ title }}</h3>
+        {% if description %}<p>{{ description }}</p>{% endif %}
+        <div class="meta">
+          {% if store %}🏬 {{ store }}{% endif %}
+          {% if location %} · {% if maps_link %}<a href="{{ maps_link }}" target="_blank" style="color:var(--accent)">📍 {{ location }}</a>{% else %}📍 {{ location }}{% endif %}{% endif %}
+          {% if expires_at %} · ⏳ {{ t('until') }} {{ expires_at }}{% endif %}
+          {% if country %} · 🌍 {{ country }}{% endif %}
+        </div>
+        {% if price %}<div class="price">{{ price }} {{ currency }}</div>{% endif %}
+        {% if link %}<a class="btn" href="{{ link }}" target="_blank">{{ t('view_offer') }}</a>{% endif %}
+        <form method="POST" action="{{ url_for('report_deal', deal_id=deal_id) }}"
+              onsubmit="return confirm('{{ t('report_confirm') }}')" style="margin-top:8px">
+          <button type="submit" style="background:none;border:none;color:#9ca3af;font-size:.75rem;cursor:pointer;text-decoration:underline">
+            {{ t('report_btn') }}
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">{{ t('no_deals') }}</div>
+  {% endif %}
+</div>
+
+</body>
+</html>
