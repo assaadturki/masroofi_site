@@ -250,7 +250,7 @@ def send_license_email(to_email, name, key, plan_label):
         print(f"[WARN] Failed to send license email: {e}")
 
 
-DOWNLOAD_FILE_URL = "https://github.com/assaadturki/masroofi_site/releases/download/app/masroofi_Setup_v4.2.exe"
+DOWNLOAD_FILE_URL = "https://github.com/assaadturki/masroofi_site/releases/download/app/masroofi_Setup_v4.3.exe"
 
 
 def _increment_stat(key):
@@ -320,7 +320,7 @@ def check_order():
 
 
 # ── Current app version (update this on every release) ───────────────────
-CURRENT_VERSION = "4.2"
+CURRENT_VERSION = "4.3"
 DOWNLOAD_URL = "https://yourdomain.com/"  # the landing page with the download button
 
 
