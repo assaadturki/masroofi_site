@@ -511,7 +511,10 @@ def logout():
 
 
 def _current_buyer():
-    """Returns (email, country, verified) for the visitor, or (None, None, False)."""
+    """Returns (email, country, verified) for the visitor, or (None, None, False).
+    Admin session bypasses buyer verification."""
+    if session.get("is_admin"):
+        return "admin", "all", True
     email = session.get("buyer_email")
     if not email:
         return None, None, False
