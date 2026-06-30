@@ -199,6 +199,15 @@ def init_db():
             created_at  TEXT
         )
     """)
+    # Migrations for existing databases
+    for sql in [
+        "ALTER TABLE deals ADD COLUMN maps_link TEXT DEFAULT ''",
+        "ALTER TABLE deals ADD COLUMN country TEXT DEFAULT ''",
+        "ALTER TABLE deals ADD COLUMN submitter_email TEXT DEFAULT ''",
+        "ALTER TABLE deals ADD COLUMN reports_count INTEGER DEFAULT 0",
+    ]:
+        try: conn.execute(sql)
+        except Exception: pass
     conn.commit()
     conn.close()
 
