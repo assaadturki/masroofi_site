@@ -32,7 +32,7 @@ import json
 from email.mime.text import MIMEText
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, jsonify, session, url_for
+from flask import Flask, render_template, request, redirect, jsonify, session, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -75,11 +75,12 @@ SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 FROM_EMAIL = os.environ.get("FROM_EMAIL", SMTP_USER or "noreply@masroofi.local")
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "orders.db")
+DB_DIR = os.environ.get("DATA_DIR", os.path.dirname(__file__))
+DB_PATH = os.path.join(DB_DIR, "orders.db")
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 SITE_API_KEY = os.environ.get("SITE_API_KEY", "changeme-api-key")
-DEALS_IMG_DIR = os.path.join(os.path.dirname(__file__), "static", "deals")
+DEALS_IMG_DIR = os.path.join(DB_DIR, "deals_images")
 os.makedirs(DEALS_IMG_DIR, exist_ok=True)
 
 # ── Products — map each Gumroad product permalink to a license duration.
@@ -503,6 +504,11 @@ def _current_buyer():
     if not row:
         return None, None, False
     return email, row[0], bool(row[1])
+
+
+@app.route("/deals-img/<filename>")
+def deals_img(filename):
+    return send_from_directory(DEALS_IMG_DIR, filename)
 
 
 @app.route("/deals")

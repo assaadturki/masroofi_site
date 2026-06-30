@@ -84,7 +84,7 @@ window.addEventListener('resize', adjustHeaderSpacing);
     {% for title, description, store, location, maps_link, price, currency, link, image, expires_at, source, deal_id, country in deals %}
     <div class="card">
       {% if image %}
-        <img src="{{ url_for('static', filename='deals/' + image) }}" alt="{{ title }}">
+        <img src="{{ url_for('deals_img', filename=image) }}" alt="{{ title }}">
       {% endif %}
       <div class="card-body">
         {% if source == 'price_comparison' %}<span class="badge">{{ t('from_app') }}</span>
