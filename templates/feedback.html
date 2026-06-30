@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if is_rtl else 'ltr' }}">
+<head>
+<meta charset="UTF-8">
+<title>Masroofi — {{ t('feedback') }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{--navy:#0a3a8a;--navy-dark:#05225f;--accent:#2563eb;--bg:#f5f7fb;--card:#fff;--muted:#6b7280}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#1a1a2e}
+  header{position:fixed;top:0;left:0;right:0;z-index:100;background:linear-gradient(135deg,var(--navy-dark),var(--navy))}
+  header img{width:100%;display:block}
+  .navbar{background:#05225f;display:flex;justify-content:center;align-items:center;gap:20px;padding:10px 0;flex-wrap:wrap}
+  .navbar a{color:#cfe0ff;text-decoration:none;font-size:.9rem;font-weight:600}
+  .lang-switch{display:flex;gap:5px}
+  .lang-switch a{padding:2px 6px;border-radius:5px;font-size:.85rem;color:#cfe0ff;text-decoration:none}
+  .lang-switch a.active{background:#fff;color:#05225f}
+  .container{max-width:800px;margin:0 auto;padding:30px 20px 60px}
+  h1{color:var(--navy-dark);text-align:center;margin-bottom:6px}
+  .form-card{background:var(--card);border-radius:14px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:30px}
+  label{font-size:.85rem;font-weight:600;display:block;margin-top:10px}
+  input,textarea,select{width:100%;padding:9px;border:1px solid #ccc;border-radius:8px;margin-top:4px;box-sizing:border-box;font-size:.9rem}
+  textarea{height:100px;resize:vertical}
+  .stars{display:flex;gap:6px;margin-top:6px;flex-direction:{{ 'row-reverse' if is_rtl else 'row' }}}
+  .stars input{display:none}
+  .stars label{font-size:1.6rem;cursor:pointer;color:#ccc;margin:0;width:auto}
+  .stars input:checked ~ label,.stars label:hover,.stars label:hover ~ label{color:#f59e0b}
+  button{margin-top:16px;padding:11px 24px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;width:100%}
+  .success{background:#dcfce7;color:#166534;padding:12px;border-radius:8px;margin-bottom:16px;text-align:center}
+  .reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:10px}
+  .review-card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .review-card .stars-display{color:#f59e0b;font-size:1rem}
+  .review-card .reviewer{font-weight:700;color:var(--navy-dark);margin-bottom:4px}
+  .review-card .country{font-size:.78rem;color:var(--muted)}
+  .review-card p{margin:8px 0 0;font-size:.9rem;color:#444;line-height:1.6}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+</style>
+</head>
+<body>
+<header>
+  <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
+  <nav class="navbar">
+    <a href="/">🏠 {{ t('home') }}</a>
+    <a href="/feedback">💬 {{ t('feedback') }}</a>
+    <a href="/manual">📖 {{ t('manual') }}</a>
+    <span class="lang-switch">
+      <a href="{{ url_for('set_lang', lang='fr') }}" class="{{ 'active' if lang=='fr' }}">FR</a>
+      <a href="{{ url_for('set_lang', lang='en') }}" class="{{ 'active' if lang=='en' }}">EN</a>
+      <a href="{{ url_for('set_lang', lang='ar') }}" class="{{ 'active' if lang=='ar' }}">AR</a>
+    </span>
+  </nav>
+</header>
+<script>
+function adj(){document.body.style.paddingTop=document.querySelector('header').offsetHeight+'px'}
+var b=document.getElementById('bannerImg');
+if(b.complete)adj();b.addEventListener('load',adj);window.addEventListener('resize',adj);
+</script>
+
+<div class="container">
+  <h1>{{ t('feedback_title') }}</h1>
+  <p style="text-align:center;color:var(--muted);margin-bottom:24px">Masroofi v4.3</p>
+
+  <div class="form-card">
+    {% if success %}
+    <div class="success">{{ t('feedback_success') }}</div>
+    {% endif %}
+    <form method="POST">
+      <div class="row2">
+        <div>
+          <label>{{ t('feedback_name') }}</label>
+          <input type="text" name="name">
+        </div>
+        <div>
+          <label>{{ t('feedback_country') }}</label>
+          <select name="country">
+            <option value="">{{ t('choose_country') }}</option>
+            {% for c in countries %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <label>{{ t('feedback_email') }}</label>
+      <input type="email" name="email">
+
+      <label>{{ t('feedback_rating') }}</label>
+      <div class="stars">
+        {% for i in [5,4,3,2,1] %}
+        <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {{ 'checked' if i==5 }}>
+        <label for="star{{ i }}">★</label>
+        {% endfor %}
+      </div>
+
+      <label>{{ t('feedback_message') }}</label>
+      <textarea name="message" required></textarea>
+      <button type="submit">{{ t('feedback_btn') }}</button>
+    </form>
+  </div>
+
+  {% if reviews %}
+  <h2 style="color:var(--navy-dark)">{{ t('feedback_reviews') }}</h2>
+  <div class="reviews-grid">
+    {% for name, country, rating, message, created_at in reviews %}
+    <div class="review-card">
+      <div class="reviewer">{{ name or '—' }} {% if country %}<span class="country">🌍 {{ country }}</span>{% endif %}</div>
+      <div class="stars-display">{{ '★' * rating }}{{ '☆' * (5-rating) }}</div>
+      <p>{{ message }}</p>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:8px">{{ created_at[:10] }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>

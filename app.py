@@ -187,6 +187,18 @@ def init_db():
     """)
     conn.execute("INSERT OR IGNORE INTO stats (key, count) VALUES ('visits', 0)")
     conn.execute("INSERT OR IGNORE INTO stats (key, count) VALUES ('downloads', 0)")
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS feedbacks (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            name        TEXT DEFAULT '',
+            email       TEXT DEFAULT '',
+            country     TEXT DEFAULT '',
+            rating      INTEGER DEFAULT 5,
+            message     TEXT NOT NULL,
+            approved    INTEGER DEFAULT 0,
+            created_at  TEXT
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -524,6 +536,51 @@ def _current_buyer():
     if not row:
         return None, None, False
     return email, row[0], bool(row[1])
+
+
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+    success = False
+    if request.method == "POST":
+        message = request.form.get("message", "").strip()
+        if message:
+            conn = _get_conn()
+            conn.execute("""INSERT INTO feedbacks (name, email, country, rating, message, created_at)
+                            VALUES (?,?,?,?,?,?)""",
+                        (request.form.get("name","").strip(),
+                         request.form.get("email","").strip(),
+                         request.form.get("country","").strip(),
+                         int(request.form.get("rating", 5)),
+                         message, datetime.now().isoformat()))
+            conn.commit(); conn.close()
+            success = True
+    conn = _get_conn()
+    reviews = conn.execute("""SELECT name, country, rating, message, created_at
+                               FROM feedbacks WHERE approved=1
+                               ORDER BY id DESC LIMIT 20""").fetchall()
+    conn.close()
+    return render_template("feedback.html", success=success, reviews=reviews,
+                            countries=COUNTRIES)
+
+
+@app.route("/admin/feedbacks", methods=["GET", "POST"])
+def admin_feedbacks():
+    if not session.get("is_admin"):
+        return redirect(url_for("admin_deals"))
+    if request.method == "POST":
+        fid = request.form.get("id")
+        action = request.form.get("action")
+        conn = _get_conn()
+        if action == "approve":
+            conn.execute("UPDATE feedbacks SET approved=1 WHERE id=?", (fid,))
+        elif action == "delete":
+            conn.execute("DELETE FROM feedbacks WHERE id=?", (fid,))
+        conn.commit(); conn.close()
+    conn = _get_conn()
+    pending = conn.execute("SELECT id,name,email,country,rating,message,created_at FROM feedbacks WHERE approved=0 ORDER BY id DESC").fetchall()
+    approved = conn.execute("SELECT id,name,email,country,rating,message,created_at FROM feedbacks WHERE approved=1 ORDER BY id DESC").fetchall()
+    conn.close()
+    return render_template("admin_feedbacks.html", pending=pending, approved=approved)
 
 
 @app.route("/deals-img/<filename>")

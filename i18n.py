@@ -65,6 +65,7 @@ TRANSLATIONS = {
         "feat4_h": "👨‍👩‍👧 متعدد العائلات", "feat4_p": "حسابات منفصلة، ميزانيات لكل فرد، وصول محدود للأطفال.",
         "downloads_count": "تحميل", "visits_count": "زيارة",
         "plan_1year": "سنة واحدة", "plan_lifetime": "مدى الحياة",
+        "feedback": "آراء المستخدمين", "feedback_title": "💬 شاركنا رأيك", "feedback_name": "الاسم (اختياري):", "feedback_email": "البريد الإلكتروني (اختياري):", "feedback_country": "البلد:", "feedback_rating": "التقييم:", "feedback_message": "رأيك *:", "feedback_btn": "إرسال الرأي", "feedback_success": "✅ شكراً! رأيك قيد المراجعة.", "feedback_reviews": "آراء المستخدمين",
     },
     "en": {
         "home": "Home",
@@ -127,6 +128,7 @@ TRANSLATIONS = {
         "feat4_h": "👨‍👩‍👧 Multi-family", "feat4_p": "Separate accounts, per-member budgets, limited child access.",
         "downloads_count": "downloads", "visits_count": "visits",
         "plan_1year": "1 Year", "plan_lifetime": "Lifetime",
+        "feedback": "Reviews", "feedback_title": "💬 Share your feedback", "feedback_name": "Name (optional):", "feedback_email": "Email (optional):", "feedback_country": "Country:", "feedback_rating": "Rating:", "feedback_message": "Your feedback *:", "feedback_btn": "Submit", "feedback_success": "✅ Thank you! Your review is pending approval.", "feedback_reviews": "User Reviews",
     },
     "fr": {
         "home": "Accueil",
@@ -189,6 +191,7 @@ TRANSLATIONS = {
         "feat4_h": "👨‍👩‍👧 Multi-famille", "feat4_p": "Comptes séparés, budgets par membre, accès enfants limité.",
         "downloads_count": "téléchargements", "visits_count": "visites",
         "plan_1year": "1 an", "plan_lifetime": "À vie",
+        "feedback": "Avis", "feedback_title": "💬 Partagez votre avis", "feedback_name": "Nom (optionnel) :", "feedback_email": "Email (optionnel) :", "feedback_country": "Pays :", "feedback_rating": "Note :", "feedback_message": "Votre avis * :", "feedback_btn": "Envoyer", "feedback_success": "✅ Merci ! Votre avis est en attente de validation.", "feedback_reviews": "Avis des utilisateurs",
     },
 }
 

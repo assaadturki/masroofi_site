@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Admin — Avis</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{font-family:'Segoe UI',sans-serif;background:#f5f7fb;margin:0;color:#1a1a2e}
+  .topbar{background:#05225f;color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+  .topbar a{color:#cfe0ff;text-decoration:none;font-size:.9rem;margin-left:16px}
+  .container{max-width:900px;margin:24px auto;padding:0 20px}
+  .section{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  h2{margin-top:0;color:#05225f}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid #eee}
+  .stars{color:#f59e0b}
+  .btn-approve{background:#16a34a;color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.8rem}
+  .btn-delete{background:#dc2626;color:#fff;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:.8rem;margin-left:4px}
+  .badge{font-size:.7rem;background:#fef3c7;color:#92400e;padding:2px 6px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <strong>🔒 Admin — Avis utilisateurs</strong>
+  <div>
+    <a href="/admin/deals">🛍️ Bons plans</a>
+    <a href="/admin/feedbacks">💬 Avis</a>
+    <a href="/admin/logout">Déconnexion</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2>⏳ En attente de validation ({{ pending|length }})</h2>
+    {% if pending %}
+    <table>
+      <tr><th>Nom</th><th>Pays</th><th>Note</th><th>Avis</th><th>Date</th><th>Actions</th></tr>
+      {% for id, name, email, country, rating, message, created_at in pending %}
+      <tr>
+        <td>{{ name or '—' }}<br><small style="color:#888">{{ email }}</small></td>
+        <td>{{ country }}</td>
+        <td class="stars">{{ '★'*rating }}{{ '☆'*(5-rating) }}</td>
+        <td>{{ message[:80] }}{% if message|length > 80 %}…{% endif %}</td>
+        <td>{{ created_at[:10] }}</td>
+        <td>
+          <form method="POST" style="display:inline">
+            <input type="hidden" name="id" value="{{ id }}">
+            <input type="hidden" name="action" value="approve">
+            <button class="btn-approve">✅ Approuver</button>
+          </form>
+          <form method="POST" style="display:inline">
+            <input type="hidden" name="id" value="{{ id }}">
+            <input type="hidden" name="action" value="delete">
+            <button class="btn-delete">🗑</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:#888">Aucun avis en attente.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>✅ Approuvés ({{ approved|length }})</h2>
+    {% if approved %}
+    <table>
+      <tr><th>Nom</th><th>Pays</th><th>Note</th><th>Avis</th><th>Date</th><th></th></tr>
+      {% for id, name, email, country, rating, message, created_at in approved %}
+      <tr>
+        <td>{{ name or '—' }}</td>
+        <td>{{ country }}</td>
+        <td class="stars">{{ '★'*rating }}</td>
+        <td>{{ message[:80] }}{% if message|length > 80 %}…{% endif %}</td>
+        <td>{{ created_at[:10] }}</td>
+        <td>
+          <form method="POST" style="display:inline">
+            <input type="hidden" name="id" value="{{ id }}">
+            <input type="hidden" name="action" value="delete">
+            <button class="btn-delete">🗑</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p style="color:#888">Aucun avis approuvé.</p>
+    {% endif %}
+  </div>
+
+</div>
+</body>
+</html>

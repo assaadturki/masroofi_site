@@ -42,6 +42,7 @@
   <img src="{{ url_for('static', filename='banner.jpg') }}" alt="Masroofi" id="bannerImg" style="width:100%;display:block">
   <nav class="navbar">
     <a href="/">🏠 {{ t('home') }}</a>
+    <a href="/feedback">💬 {{ t('feedback') }}</a>
     <a href="{{ '/manual/ar' if lang=='ar' else '/manual' }}">📖 {{ t('manual') }}</a>
     <a href="/login">🔐 {{ t('login') }}</a>
     <span class="lang-switch">
