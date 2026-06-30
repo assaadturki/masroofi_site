@@ -32,7 +32,7 @@ import json
 from email.mime.text import MIMEText
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, jsonify, session, url_for, send_from_directory
+from flask import Flask, render_template, request, redirect, jsonify, session, url_for, send_from_directory, make_response
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -102,7 +102,9 @@ PLANS = {
 
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")
     conn.execute("""
         CREATE TABLE IF NOT EXISTS orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -190,7 +192,7 @@ def init_db():
 
 
 def save_order(sale_id, name, email, plan, key):
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.execute(
         "INSERT OR IGNORE INTO orders (sale_id, customer_name, customer_email, plan, license_key, created_at) "
         "VALUES (?,?,?,?,?,?)",
@@ -201,7 +203,7 @@ def save_order(sale_id, name, email, plan, key):
 
 
 def get_order_by_sale(sale_id):
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     row = conn.execute(
         "SELECT customer_name, customer_email, plan, license_key FROM orders WHERE sale_id=?",
         (sale_id,),
@@ -254,14 +256,20 @@ def send_license_email(to_email, name, key, plan_label):
 DOWNLOAD_FILE_URL = "https://github.com/assaadturki/masroofi_site/releases/download/app/masroofi_Setup_v4.3.exe"
 
 
+def _get_conn():
+    conn = sqlite3.connect(DB_PATH, timeout=30)
+    conn.execute("PRAGMA journal_mode=WAL")
+    return conn
+
+
 def _increment_stat(key):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _get_conn()
     conn.execute("UPDATE stats SET count = count + 1 WHERE key=?", (key,))
     conn.commit(); conn.close()
 
 
 def _get_stat(key):
-    conn = sqlite3.connect(DB_PATH)
+    conn = _get_conn()
     row = conn.execute("SELECT count FROM stats WHERE key=?", (key,)).fetchone()
     conn.close()
     return row[0] if row else 0
@@ -270,7 +278,16 @@ def _get_stat(key):
 # ── Routes ────────────────────────────────────────────────────────────────
 @app.route("/")
 def index():
-    _increment_stat("visits")
+    # Count unique visits per day via cookie
+    today = datetime.now().strftime("%Y-%m-%d")
+    last_visit = request.cookies.get("last_visit")
+    resp = None
+    if last_visit != today:
+        _increment_stat("visits")
+        resp = make_response(render_template("index.html", plans=PLANS,
+                                visits=_get_stat("visits"), downloads=_get_stat("downloads")))
+        resp.set_cookie("last_visit", today, max_age=60*60*24*365)
+        return resp
     return render_template("index.html", plans=PLANS,
                             visits=_get_stat("visits"), downloads=_get_stat("downloads"))
 
@@ -368,7 +385,7 @@ def activate():
         return jsonify({"ok": False, "error": "invalid key format"}), 400
     name, expiry, seats = parsed
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     already = conn.execute(
         "SELECT 1 FROM activations WHERE license_key=? AND machine_id=?",
         (full_key, machine_id)).fetchone()
@@ -415,7 +432,7 @@ def register():
         elif not plan:
             error = "Offre invalide."
         else:
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             existing = conn.execute("SELECT id FROM buyers WHERE email=?", (email,)).fetchone()
             if existing:
                 error = "Un compte existe déjà avec cet email — connecte-toi plutôt."
@@ -446,7 +463,7 @@ def claim_account():
         country = request.form.get("country", "").strip()
         password = request.form.get("password", "")
         password2 = request.form.get("password2", "")
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         row = conn.execute("SELECT verified, password_hash FROM buyers WHERE email=?", (email,)).fetchone()
         if not row or not row[0]:
             error = "Aucun achat vérifié trouvé pour cet email."
@@ -473,7 +490,7 @@ def login():
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         password = request.form.get("password", "")
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         row = conn.execute("SELECT country, password_hash, verified FROM buyers WHERE email=?",
                             (email,)).fetchone()
         conn.close()
@@ -498,7 +515,7 @@ def _current_buyer():
     email = session.get("buyer_email")
     if not email:
         return None, None, False
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     row = conn.execute("SELECT country, verified FROM buyers WHERE email=?", (email,)).fetchone()
     conn.close()
     if not row:
@@ -519,7 +536,7 @@ def deals_public():
 
     selected_country = request.args.get("country", buyer_country or "")
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     today = datetime.now().strftime("%Y-%m-%d")
     query = """
         SELECT title, description, store, location, maps_link, price, currency, link,
@@ -561,7 +578,7 @@ def submit_deal():
             if file and file.filename:
                 image_filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
                 file.save(os.path.join(DEALS_IMG_DIR, image_filename))
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.execute("""INSERT INTO deals
                 (title, description, store, location, maps_link, price, currency, link,
                  image_filename, expires_at, country, source, submitter_email, created_at)
@@ -586,7 +603,7 @@ def submit_deal():
 @app.route("/report-deal/<int:deal_id>", methods=["POST"])
 def report_deal(deal_id):
     ip = request.headers.get("X-Forwarded-For", request.remote_addr or "")
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     already = conn.execute(
         "SELECT 1 FROM deal_reports WHERE deal_id=? AND reporter_ip=?", (deal_id, ip)).fetchone()
     if not already:
@@ -619,7 +636,7 @@ def admin_deals():
             if file and file.filename:
                 image_filename = secure_filename(f"{datetime.now().timestamp()}_{file.filename}")
                 file.save(os.path.join(DEALS_IMG_DIR, image_filename))
-            conn = sqlite3.connect(DB_PATH)
+            conn = sqlite3.connect(DB_PATH, timeout=30)
             conn.execute("""INSERT INTO deals
                 (title, description, store, location, maps_link, price, currency, link,
                  image_filename, expires_at, source, created_at)
@@ -638,19 +655,19 @@ def admin_deals():
 
     if request.method == "POST" and request.form.get("action") == "delete":
         deal_id = request.form.get("deal_id")
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         conn.execute("DELETE FROM deals WHERE id=?", (deal_id,))
         conn.commit(); conn.close()
         return redirect(url_for("admin_deals"))
 
     if request.method == "POST" and request.form.get("action") == "reactivate":
         deal_id = request.form.get("deal_id")
-        conn = sqlite3.connect(DB_PATH)
+        conn = sqlite3.connect(DB_PATH, timeout=30)
         conn.execute("UPDATE deals SET active=1, reports_count=0 WHERE id=?", (deal_id,))
         conn.commit(); conn.close()
         return redirect(url_for("admin_deals"))
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     rows = conn.execute("""SELECT id,title,description,store,location,maps_link,price,currency,
                                    link,image_filename,expires_at,source,active,country,reports_count
                             FROM deals ORDER BY reports_count DESC, id DESC""").fetchall()
@@ -677,7 +694,7 @@ def import_deal():
     if not title:
         return jsonify({"ok": False, "error": "title required"}), 400
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.execute("""INSERT INTO deals
         (title, description, store, location, maps_link, price, currency, link,
          expires_at, source, created_at)
@@ -719,7 +736,7 @@ def gumroad_webhook():
 
     # Mark this email as a VERIFIED buyer — this is what unlocks "Bons Plans"
     # access on the website. No license key needs to be entered anywhere.
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     existing = conn.execute("SELECT id, country FROM buyers WHERE email=?", (email,)).fetchone()
     if existing:
         conn.execute("UPDATE buyers SET verified=1, plan=? WHERE email=?", (permalink, email))
